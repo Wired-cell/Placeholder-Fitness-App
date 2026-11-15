@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import kotlin.random.Random
 import kotlinx.coroutines.delay
 
@@ -134,7 +136,31 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Meal("Coconut vegetable stew","Gentle dinner",390,8,43,22,"Mixed vegetables, light coconut milk, curry leaves","Simmer vegetables in coconut milk with ginger and curry leaves.",setOf("Coconut"))
  )
 
- val products=listOf(Triple("Resistance band set","₹399",699),Triple("Yoga mat • 6 mm","₹699",1199),Triple("Doorway pull-up bar","₹1,299",1899),Triple("Skipping rope","₹249",499),Triple("Adjustable dumbbells","₹2,499",3499),Triple("Foam roller","₹599",999))
+ val products=listOf(
+ Triple("Kimjaly 6mm Yoga Mat","₹999",999),
+ Triple("Boldfit NBR Yoga Mat 8mm","₹899",899),
+ Triple("Yoga Alignment Mat","₹1,575",1575),
+ Triple("DOMYOS Resistance Band Set","₹1,999",1999),
+ Triple("Mini Loop Resistance Bands","₹399",399),
+ Triple("Latex Resistance Tube 15kg","₹299",299),
+ Triple("Hex Dumbbells 2kg Pair","₹400",400),
+ Triple("Hex Dumbbells 3kg Pair","₹544",544),
+ Triple("Adjustable Dumbbell Set","₹2,499",2499),
+ Triple("DOMYOS Skipping Rope","₹299",299),
+ Triple("Speed Jump Rope","₹499",499),
+ Triple("Textured Foam Roller","₹799",799),
+ Triple("Yoga Block","₹244",244),
+ Triple("Yoga Strap","₹189",189),
+ Triple("Adjustable Hand Gripper","₹199",199),
+ Triple("Push-Up Bar Grips","₹499",499),
+ Triple("Doorway Pull-Up Bar","₹1,249",1249),
+ Triple("Gym Ball with Pump","₹579",579),
+ Triple("Yoga Wheel","₹730",730),
+ Triple("Massage Ball Set","₹399",399),
+ Triple("Advanced Yoga Video Course","₹499",499),
+ Triple("Strength Training Video Course","₹599",599),
+ Triple("Martial Arts Video Course","₹699",699)
+ )
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=lime,background=bg,surface=surface,onBackground=ink,onSurface=ink) else lightColorScheme(primary=Color(0xFF426B18),background=bg,surface=surface,onBackground=ink,onSurface=ink)) {
  Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(premiumOpen) "Premium courses" else if(selectedLesson!=null) selectedLesson!!.name else "MOMENTUM",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
  bottomBar={if(!settings && selectedLesson==null && !gateway && !premiumOpen) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
