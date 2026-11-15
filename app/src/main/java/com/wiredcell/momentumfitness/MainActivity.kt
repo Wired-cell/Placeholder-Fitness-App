@@ -159,14 +159,19 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Triple("Massage Ball Set","₹399",399),
  Triple("Advanced Yoga Video Course","₹499",499),
  Triple("Strength Training Video Course","₹599",599),
- Triple("Martial Arts Video Course","₹699",699)
+ Triple("Martial Arts Video Course","₹699",699),
+ Triple("30-Day Asana Mastery","₹899",899),
+ Triple("12-Week Strength Foundations","₹1,299",1299),
+ Triple("Mobility & Recovery Deep Dive","₹699",699),
+ Triple("Handstand Pathway","₹799",799),
+ Triple("Nutrition & Meal Planning","₹599",599)
  )
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=lime,background=bg,surface=surface,onBackground=ink,onSurface=ink) else lightColorScheme(primary=Color(0xFF426B18),background=bg,surface=surface,onBackground=ink,onSurface=ink)) {
  Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(premiumOpen) "Premium courses" else if(selectedLesson!=null) selectedLesson!!.name else "MOMENTUM",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
  bottomBar={if(!settings && selectedLesson==null && !gateway && !premiumOpen) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
  Box(Modifier.fillMaxSize().padding(pad)) {
  when {
- premiumOpen -> PremiumPaywall(ink,muted,surface,{premiumOpen=false})
+ premiumOpen -> PremiumPaywall(ink,muted,surface,cart,{n->cart=if(n in cart)cart-n else cart+n},{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true},{premiumOpen=false})
  selectedLesson != null -> CourseDetail(selectedLesson!!,ink,muted,surface,{selectedLesson=null})
  settings -> SettingsScreen(dark,darcula,profileName,profileDob,profileHeight,profileWeight,profileLevel,profileHobbies,profileEmail,{dark=it;if(!it)darcula=false},{darcula=it;dark=true},ink,muted,surface)
  gateway -> Checkout(gatewayItems,ink,muted,surface,{gateway=false})
@@ -247,7 +252,12 @@ private val asanaInstructions=listOf(
  }
 }
 @Composable private fun PremiumShelf(modifier:Modifier,surface:Color,ink:Color,muted:Color,onClick:()->Unit){Column(modifier.fillMaxWidth().background(Color(0xE9101116),RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).clickable(onClick=onClick).padding(10.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text("🔒 PREMIUM COURSE COLLECTION",color=Color(0xFFE8B75A),fontWeight=FontWeight.Black,fontSize=10.sp,modifier=Modifier.weight(1f));Text("Tap to explore",color=muted,fontSize=10.sp)};Row(horizontalArrangement=Arrangement.spacedBy(7.dp)){listOf("Advanced Yoga • 30 days","Martial Arts Mastery","Strength & Conditioning").forEach{title->Card(Modifier.weight(1f).height(40.dp),colors=CardDefaults.cardColors(containerColor=surface)){Box(Modifier.fillMaxSize().blur(2.dp).padding(4.dp),contentAlignment=Alignment.Center){Text(title,color=ink,fontWeight=FontWeight.Bold,fontSize=9.sp,maxLines=2)}}}}}}
-@Composable private fun PremiumPaywall(ink:Color,muted:Color,surface:Color,back:()->Unit){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(11.dp)){TextButton(onClick=back){Icon(Icons.Default.ArrowBack,null);Text(" Back")};Heading("Premium course vault","Locked advanced programmes",ink,muted);listOf("30-day Asana Mastery","12-week Strength Foundations","Martial Arts Skills Lab","Mobility & Recovery Deep Dive","Nutrition & Meal Planning","Handstand Pathway").forEach{title->Panel(surface){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(title,color=ink,fontWeight=FontWeight.Bold);Text("🔒 Paid course • blurred preview",color=muted,fontSize=11.sp)};Text("PAID",color=Color(0xFFE8B75A),fontWeight=FontWeight.Black,fontSize=11.sp)}}};Text("Locked previews only; no payment is processed.",color=muted,fontSize=11.sp)}}
+@Composable private fun PremiumPaywall(ink:Color,muted:Color,surface:Color,cart:Set<String>,toggle:(String)->Unit,checkout:()->Unit,back:()->Unit){
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(11.dp)){TextButton(onClick=back){Icon(Icons.Default.ArrowBack,null);Text(" Back")};Heading("Premium course vault","Advanced training programmes",ink,muted)
+ listOf("30-Day Asana Mastery" to "₹899","12-Week Strength Foundations" to "₹1,299","Mobility & Recovery Deep Dive" to "₹699","Handstand Pathway" to "₹799","Nutrition & Meal Planning" to "₹599").forEach{(title,price)->Panel(surface){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(title,color=ink,fontWeight=FontWeight.Bold);Text(price+" • Paid course",color=muted,fontSize=11.sp)};Button(onClick={toggle(title)}){Text(if(title in cart)"Remove" else "Add to cart")}}}}
+ Button(onClick=checkout,enabled=cart.isNotEmpty(),modifier=Modifier.fillMaxWidth()){Text("Go to cart • "+cart.size+" items")}
+ }
+}
 
 @Composable private fun Heading(title:String,sub:String,ink:Color,muted:Color){Column(verticalArrangement=Arrangement.spacedBy(3.dp)){Text(title,color=ink,fontSize=23.sp,fontWeight=FontWeight.Bold);Text(sub,color=muted,fontSize=13.sp)}}
 @Composable private fun Panel(surface:Color,content:@Composable ColumnScope.()->Unit){Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface),content=content)}
@@ -259,8 +269,6 @@ private val asanaInstructions=listOf(
  item{WorkoutPlanner(ink,muted,surface)}
  item{HabitPamphlet(ink,muted,surface)}
  item{listOf("🥊  Martial arts" to "Technique and discipline","🧘  Yoga" to "Mobility and mindful movement","💪  Calisthenics" to "Bodyweight strength").forEach{p->Panel(surface){Row(Modifier.clickable{navigate(Tab.Train)}.padding(15.dp),verticalAlignment=Alignment.CenterVertically){Text(p.first,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text(p.second,color=muted,fontSize=11.sp);Icon(Icons.Default.ChevronRight,null,tint=muted)}};Spacer(Modifier.height(8.dp))}}
- item{Panel(surface){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(7.dp)){Text("🎁 Welcome offer",color=ink,fontWeight=FontWeight.Bold,fontSize=18.sp);Text("Explore training equipment and membership options.",color=muted);Text("Explore current membership benefits.",color=muted,fontSize=11.sp)}}}
- item{Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){Text("🎂 Birthday treat",color=ink,fontWeight=FontWeight.Bold);Text("Add your birthday in your profile to keep your account details up to date.",color=muted,fontSize=12.sp)}}}
  item{Text("Your activity and progress are tracked locally on this device.",color=muted,fontSize=11.sp)}
  }
 }
