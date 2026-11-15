@@ -1,4 +1,4 @@
-package com.wiredcell.placeholderfitness
+package com.wiredcell.momentumfitness
 import android.os.Bundle
 import android.content.Intent
 import android.net.Uri
