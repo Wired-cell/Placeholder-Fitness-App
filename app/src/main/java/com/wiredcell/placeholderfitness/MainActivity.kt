@@ -100,6 +100,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  }
  }
 }
+}
 @Composable private fun Heading(title:String,sub:String,ink:Color,muted:Color){Column(verticalArrangement=Arrangement.spacedBy(3.dp)){Text(title,color=ink,fontSize=23.sp,fontWeight=FontWeight.Bold);Text(sub,color=muted,fontSize=13.sp)}}
 @Composable private fun Panel(surface:Color,content:@Composable ColumnScope.()->Unit){Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface),content=content)}
 @Composable private fun HomeScreen(ink:Color,muted:Color,surface:Color,lime:Color,unlocked:Boolean,navigate:(Tab)->Unit){
