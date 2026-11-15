@@ -2,6 +2,8 @@ package com.wiredcell.momentumfitness
 import android.os.Bundle
 import android.content.Intent
 import android.net.Uri
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -51,6 +53,17 @@ private data class FoodLog(val name:String,val kcal:Int)
 private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:Int,val carbs:Int,val fat:Int,val ingredients:String,val method:String,val allergens:Set<String>)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable private fun FitnessApp() {
+ val context=LocalContext.current
+ val prefs=remember { context.getSharedPreferences("momentum_profile",Context.MODE_PRIVATE) }
+ var profileName by remember { mutableStateOf(prefs.getString("name","") ?: "") }
+ var profileDob by remember { mutableStateOf(prefs.getString("dob","") ?: "") }
+ var profileHeight by remember { mutableStateOf(prefs.getString("height","") ?: "") }
+ var profileWeight by remember { mutableStateOf(prefs.getString("weight","") ?: "") }
+ var profileLevel by remember { mutableStateOf(prefs.getString("level","Beginner") ?: "Beginner") }
+ var profileHobbies by remember { mutableStateOf(prefs.getString("hobbies","") ?: "") }
+ var profileEmail by remember { mutableStateOf(prefs.getString("google_email","") ?: "") }
+ var profileComplete by remember { mutableStateOf(prefs.getBoolean("profile_complete",false)) }
+ var onboardingStep by remember { mutableIntStateOf(0) }
  var tab by remember { mutableStateOf(Tab.Home) }; var dark by remember { mutableStateOf(true) }; var darcula by remember { mutableStateOf(true) }
  var streakDays by remember { mutableIntStateOf(0) }; var workoutsWeek by remember { mutableIntStateOf(0) }; var workoutMinutes by remember { mutableIntStateOf(0) }
  var foodLogs by remember { mutableStateOf(emptyList<FoodLog>()) }; var foodName by remember { mutableStateOf("") }; var foodKcal by remember { mutableStateOf("") }; var premiumOpen by remember { mutableStateOf(false) }
@@ -129,8 +142,9 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  when {
  premiumOpen -> PremiumPaywall(ink,muted,surface,{premiumOpen=false})
  selectedLesson != null -> CourseDetail(selectedLesson!!,ink,muted,surface,{selectedLesson=null})
- settings -> SettingsScreen(dark,darcula,promo,promoMsg,{dark=it},{darcula=it;dark=true},{promo=it},{if(promo.trim()=="Notiboi Piyush"){unlocked=true;promoMsg="🎉 All paid courses unlocked! Premium martial arts, yoga and calisthenics are now available."}else promoMsg="Code not recognised. Try again."},ink,muted,surface)
+ settings -> SettingsScreen(dark,darcula,profileName,profileDob,profileHeight,profileWeight,profileLevel,profileHobbies,profileEmail,{dark=it;if(!it)darcula=false},{darcula=it;dark=true},ink,muted,surface)
  gateway -> Checkout(gatewayItems,ink,muted,surface,{gateway=false})
+ !profileComplete -> OnboardingScreen(onboardingStep,{onboardingStep=it},profileName,{profileName=it},profileDob,{profileDob=it},profileHeight,{profileHeight=it},profileWeight,{profileWeight=it},profileLevel,{profileLevel=it},profileHobbies,{profileHobbies=it},profileEmail,{profileEmail=it},prefs,{profileComplete=true},ink,muted,surface)
  else -> when(tab) {
  Tab.Home -> HomeScreen(ink,muted,surface,lime,unlocked,streakDays,workoutsWeek,expandedFoods.size,{tab=it})
  Tab.Train -> TrainingScreen(lessons,ink,muted,surface,lime,{l->selectedLesson=l})
@@ -214,14 +228,25 @@ private val asanaNames=listOf("Mountain Pose (Tadasana)","Raised Arms (Urdhva Ha
  items(posts,key={it.id}){p->Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(p.author,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));if(p.pinned)Text("📌 PINNED",color=Color(0xFFE2A84D),fontSize=10.sp,fontWeight=FontWeight.Bold);else Text(p.tag,color=muted,fontSize=10.sp)};Text(p.message,color=ink,fontSize=13.sp);Row(verticalAlignment=Alignment.CenterVertically){Text("♥ "+(p.likes+(if(p.id in likes)1 else 0)),color=Color(0xFFE58A9B),fontSize=12.sp);Spacer(Modifier.width(10.dp));TextButton(onClick={toggle(p.id)}){Text(if(p.id in likes)"Liked" else "Like")}}}}}
  }
 }
-@Composable private fun SettingsScreen(dark:Boolean,darcula:Boolean,promo:String,message:String,setDark:(Boolean)->Unit,setDarcula:(Boolean)->Unit,setPromo:(String)->Unit,redeem:()->Unit,ink:Color,muted:Color,surface:Color){
- Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){Heading("Preferences","Make the app feel like yours.",ink,muted)
- Panel(surface){Column(Modifier.padding(16.dp)){Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Dark theme",color=ink,fontWeight=FontWeight.Bold);Text("Switch between light and dark",color=muted,fontSize=12.sp)};Switch(checked=dark,onCheckedChange={setDark(it);if(!it)setDarcula(false)})};HorizontalDivider();Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Darcula / AMOLED",color=ink,fontWeight=FontWeight.Bold);Text("Use deeper charcoal surfaces",color=muted,fontSize=12.sp)};Switch(checked=darcula,onCheckedChange={setDarcula(it);setDark(true)})}}}
- Panel(surface){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){Text("🎟️ Promo code",color=ink,fontWeight=FontWeight.Bold,fontSize=18.sp);Text("Enter the demo code to unlock premium lessons locally.",color=muted,fontSize=12.sp);OutlinedTextField(value=promo,onValueChange=setPromo,label={Text("Enter promo code")},modifier=Modifier.fillMaxWidth(),singleLine=true);Button(onClick=redeem,modifier=Modifier.fillMaxWidth()){Text("Redeem code")};if(message.isNotBlank())Text(message,color=if(message.startsWith("🎉"))Color(0xFF82B95A) else Color(0xFFE5A64C),fontSize=12.sp)}}
- Panel(surface){Column(Modifier.padding(16.dp)){Text("About this build",color=ink,fontWeight=FontWeight.Bold);Text("Momentum Fitness • training, nutrition, activity and community.",color=muted,fontSize=12.sp)}}
+@Composable private fun OnboardingScreen(step:Int,setStep:(Int)->Unit,name:String,setName:(String)->Unit,dob:String,setDob:(String)->Unit,height:String,setHeight:(String)->Unit,weight:String,setWeight:(String)->Unit,level:String,setLevel:(String)->Unit,hobbies:String,setHobbies:(String)->Unit,email:String,setEmail:(String)->Unit,prefs:SharedPreferences,finish:()->Unit,ink:Color,muted:Color,surface:Color){
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(22.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){
+ Text("MOMENTUM",color=ink,fontSize=27.sp,fontWeight=FontWeight.Black)
+ Panel(surface){Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
+ Text(if(step==0)"Create your profile" else if(step==1)"Connect your account" else "Your training profile",color=ink,fontWeight=FontWeight.Bold,fontSize=20.sp)
+ if(step==0){OutlinedTextField(value=name,onValueChange=setName,label={Text("Full name")},modifier=Modifier.fillMaxWidth());OutlinedTextField(value=dob,onValueChange=setDob,label={Text("Date of birth (DD/MM/YYYY)")},modifier=Modifier.fillMaxWidth())}
+ if(step==1){Text("Google Drive backup requires the Android app's Google OAuth client configuration. Your profile can be saved on this device in the meantime.",color=muted,fontSize=12.sp);OutlinedTextField(value=email,onValueChange=setEmail,label={Text("Google account email (optional)")},modifier=Modifier.fillMaxWidth());Text("An email address alone does not authenticate a Google account or grant Drive access.",color=muted,fontSize=11.sp)}
+ if(step==2){OutlinedTextField(value=height,onValueChange=setHeight,label={Text("Height (cm)")},modifier=Modifier.fillMaxWidth());OutlinedTextField(value=weight,onValueChange=setWeight,label={Text("Weight (kg)")},modifier=Modifier.fillMaxWidth());Text("Experience level",color=ink,fontWeight=FontWeight.Bold);listOf("Beginner","Intermediate","Advanced").forEach{FilterChip(selected=level==it,onClick={setLevel(it)},label={Text(it)})};OutlinedTextField(value=hobbies,onValueChange=setHobbies,label={Text("Sports, hobbies and goals")},modifier=Modifier.fillMaxWidth(),minLines=2)}
+ Button(onClick={if(step<2)setStep(step+1) else {prefs.edit().putString("name",name.trim()).putString("dob",dob.trim()).putString("height",height.trim()).putString("weight",weight.trim()).putString("level",level).putString("hobbies",hobbies.trim()).putString("google_email",email.trim()).putBoolean("profile_complete",true).apply();finish()}},enabled=when(step){0->name.isNotBlank()&&dob.length>=8;2->(height.toFloatOrNull()?:0f)>0&&(weight.toFloatOrNull()?:0f)>0;else->true},modifier=Modifier.fillMaxWidth()){Text(if(step==2)"Save profile" else "Continue")}
+ if(step>0)TextButton(onClick={setStep(step-1)}){Text("Back")}
+ }}
  }
 }
-
+@Composable private fun SettingsScreen(dark:Boolean,darcula:Boolean,name:String,dob:String,height:String,weight:String,level:String,hobbies:String,email:String,setDark:(Boolean)->Unit,setDarcula:(Boolean)->Unit,ink:Color,muted:Color,surface:Color){
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){Heading("Settings & profile","Your account and app preferences",ink,muted)
+ Panel(surface){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){Text("👤 "+name,color=ink,fontWeight=FontWeight.Bold,fontSize=20.sp);Text("Date of birth: "+dob,color=muted);Text("Height: "+height+" cm • Weight: "+weight+" kg",color=muted);Text("Experience: "+level,color=muted);Text("Sports & hobbies: "+hobbies,color=muted);Text("Google account: "+(if(email.isBlank())"Not connected" else email),color=muted);Text("Profile is stored on this device. Google Drive backup requires OAuth configuration.",color=muted,fontSize=11.sp)}}
+ Panel(surface){Column(Modifier.padding(16.dp)){Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Dark theme",color=ink,fontWeight=FontWeight.Bold);Text("Switch between light and dark",color=muted,fontSize=12.sp)};Switch(checked=dark,onCheckedChange={setDark(it);if(!it)setDarcula(false)})};HorizontalDivider();Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Darcula / AMOLED",color=ink,fontWeight=FontWeight.Bold);Text("Pure black background",color=muted,fontSize=12.sp)};Switch(checked=darcula,onCheckedChange={setDarcula(it);setDark(true)})}}
+ }
+}
 @Composable private fun WorkoutPlanner(ink:Color,muted:Color,surface:Color){
  var height by remember{mutableStateOf("170")};var weight by remember{mutableStateOf("68")};var goal by remember{mutableStateOf("Build strength")}
  val h=(height.toFloatOrNull()?:170f)/100f;val w=weight.toFloatOrNull()?:68f;val bmi=if(h>0)w/(h*h) else 0f
