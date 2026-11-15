@@ -178,7 +178,7 @@ private val asanaNames=listOf("Mountain Pose (Tadasana)","Raised Arms (Urdhva Ha
  }
 }
 @Composable private fun FoodScreen(foods:List<Meal>,allergies:Set<String>,setAllergies:(Set<String>)->Unit,ink:Color,muted:Color,surface:Color){
- val choices=listOf("Peanuts","Dairy","Eggs","Gluten","Soy","Sesame","Tree nuts","Fish","Shellfish");val visible=foods.filter{it.allergens.intersect(allergies).isEmpty()}
+ val choices=listOf("Peanuts","Dairy","Eggs","Gluten","Soy","Sesame","Tree nuts","Fish","Shellfish","Legumes","Seeds","Coconut");val visible=foods.filter{it.allergens.intersect(allergies).isEmpty()}
  LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Heading("Food that fuels you","Meal ideas, estimated macros and recipes.",ink,muted)}
  item{Panel(surface){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(7.dp)){Text("Allergy filter",color=ink,fontWeight=FontWeight.Bold);Text("Select allergens to hide matching sample recipes.",color=muted,fontSize=12.sp);choices.chunked(3).forEach{group->Row(horizontalArrangement=Arrangement.spacedBy(4.dp)){group.forEach{a->FilterChip(selected=a in allergies,onClick={setAllergies(if(a in allergies)allergies-a else allergies+a)},label={Text(a,fontSize=10.sp)})}}}}}}
  item{Text(visible.size.toString()+" recipes shown • "+(foods.size-visible.size).toString()+" hidden by allergy filter",color=muted,fontSize=12.sp)}
