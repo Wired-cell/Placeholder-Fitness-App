@@ -177,7 +177,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  !profileComplete -> OnboardingScreen(onboardingStep,{onboardingStep=it},profileName,{profileName=it},profileDob,{profileDob=it},profileHeight,{profileHeight=it},profileWeight,{profileWeight=it},profileLevel,{profileLevel=it},profileHobbies,{profileHobbies=it},profileEmail,{profileEmail=it},prefs,{profileComplete=true},ink,muted,surface)
  else -> when(tab) {
  Tab.Home -> HomeScreen(ink,muted,surface,lime,unlocked,streakDays,workoutsWeek,expandedFoods.size,profileHeight,profileWeight,{tab=it})
- Tab.Train -> TrainingScreen(lessons,ink,muted,surface,lime,cart,{n->cart=if(n in cart)cart-n else cart+n},{l->selectedLesson=l})
+ Tab.Train -> TrainingScreen(lessons,products,ink,muted,surface,lime,cart,{n->cart=if(n in cart)cart-n else cart+n},{l->selectedLesson=l})
  Tab.Food -> FoodScreen(expandedFoods,allergies,{allergies=it},ink,muted,surface)
  Tab.Track -> Tracker(water,{water=(water+1).coerceAtMost(20)},{water=(water-1).coerceAtLeast(0)},mealCount,{mealCount++},foodLogs,{name,kcal->foodLogs=foodLogs+FoodLog(name,kcal);mealCount++},foodName,{foodName=it},foodKcal,{foodKcal=it},streakDays,workoutsWeek,workoutMinutes,{streakDays++;workoutsWeek++;workoutMinutes+=30},ink,muted,surface)
  Tab.Shop -> Shop(products,cart,{cart=if(it in cart)cart-it else cart+it},ink,muted,surface,{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true})
@@ -261,13 +261,17 @@ private val asanaInstructions=listOf(
  }
 }
 @Composable private fun MiniStat(label:String,value:String,caption:String,surface:Color,ink:Color,muted:Color,modifier:Modifier){Card(modifier,colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(11.dp)){Text(label,color=muted,fontSize=10.sp,fontWeight=FontWeight.Bold);Text(value,color=ink,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(caption,color=muted,fontSize=10.sp)}}}
-@Composable private fun TrainingScreen(lessons:List<Lesson>,ink:Color,muted:Color,surface:Color,lime:Color,cart:Set<String>,toggleCart:(String)->Unit,open:(Lesson)->Unit){
+@Composable private fun TrainingScreen(lessons:List<Lesson>,products:List<Triple<String,String,Int>>,ink:Color,muted:Color,surface:Color,lime:Color,cart:Set<String>,toggleCart:(String)->Unit,open:(Lesson)->Unit){
  var category by remember{mutableStateOf("Martial arts")};val selected=when(category){"Martial arts"->lessons.take(4);"Yoga"->lessons.drop(4).take(4);else->lessons.drop(8)}
- LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){item{Heading("Train your way","Original in-app training programmes for every level",ink,muted)};item{Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Martial arts","Yoga","Calisthenics").forEach{FilterChip(selected=category==it,onClick={category=it},label={Text(it)})}}}
- items(selected){l->Card(Modifier.fillMaxWidth().clickable{open(l)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface)){Column{Box(Modifier.fillMaxWidth().height(140.dp).background(Brush.linearGradient(listOf(Color(0xFF4D6651),Color(0xFF242E40)))).padding(16.dp),contentAlignment=Alignment.Center){Column(Modifier.blur(0.dp),horizontalAlignment=Alignment.CenterHorizontally){Text(if(category=="Yoga")"🧘" else if(category=="Martial arts")"🥊" else "💪",fontSize=42.sp);Text("TRAINING SESSION",color=Color.White,fontWeight=FontWeight.Black,letterSpacing=2.sp)};Icon(Icons.Default.PlayCircle,null,tint=Color.White,modifier=Modifier.size(38.dp))}
- Column(Modifier.padding(14.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(l.name,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("FREE",color=lime,fontWeight=FontWeight.Bold,fontSize=11.sp)};Text(l.desc,color=muted,fontSize=12.sp);Text("Tap to open course",color=muted,fontSize=11.sp)}
- }}}
- item{AsanaLibrary(ink,muted,surface)};item{YouTubeLibrary(ink,muted,surface,cart,toggleCart)}
+ val paidCourses=products.filter{it.first in setOf("30-Day Asana Mastery","12-Week Strength Foundations","Mobility & Recovery Deep Dive","Handstand Pathway","Nutrition & Meal Planning")}
+ LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){
+ item{Heading("Train your way","Free guided programmes, followed by paid courses",ink,muted)}
+ item{Text("FREE COURSES",color=lime,fontWeight=FontWeight.Black,fontSize=16.sp)}
+ item{Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Martial arts","Yoga","Calisthenics").forEach{FilterChip(selected=category==it,onClick={category=it},label={Text(it)})}}}
+ items(selected){l->Card(Modifier.fillMaxWidth().clickable{open(l)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface)){Column{Box(Modifier.fillMaxWidth().height(118.dp).background(Brush.linearGradient(listOf(Color(0xFF4D6651),Color(0xFF242E40)))).padding(16.dp),contentAlignment=Alignment.Center){Text(if(category=="Yoga")"🧘" else if(category=="Martial arts")"🥊" else "💪",fontSize=42.sp)};Column(Modifier.padding(14.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(l.name,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("FREE",color=lime,fontWeight=FontWeight.Bold,fontSize=11.sp)};Text(l.desc,color=muted,fontSize=12.sp);Text("Open written instructions",color=muted,fontSize=11.sp)}}}}
+ item{Text("PAID COURSES",color=Color(0xFFE5B45B),fontWeight=FontWeight.Black,fontSize=16.sp)}
+ items(paidCourses){p->Panel(surface){Row(Modifier.padding(13.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(p.first,color=ink,fontWeight=FontWeight.Bold);Text(p.second+" • Full course access",color=muted,fontSize=11.sp)};Button(onClick={toggleCart(p.first)}){Text(if(p.first in cart)"Remove" else "Add to cart")}}}}
+ item{AsanaLibrary(ink,muted,surface)}
  }
 }
 @Composable private fun FoodScreen(foods:List<Meal>,allergies:Set<String>,setAllergies:(Set<String>)->Unit,ink:Color,muted:Color,surface:Color){
