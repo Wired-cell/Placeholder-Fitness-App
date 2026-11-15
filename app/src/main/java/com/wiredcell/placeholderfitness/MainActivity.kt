@@ -1,7 +1,5 @@
 package com.wiredcell.placeholderfitness
 import android.os.Bundle
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -24,19 +22,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import kotlin.random.Random
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() { override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); setContent { FitnessApp() } } }
 private enum class Tab(val title:String,val icon:androidx.compose.ui.graphics.vector.ImageVector) {
  Home("Home",Icons.Default.Home), Train("Train",Icons.Default.FitnessCenter), Food("Food",Icons.Default.Restaurant), Track("Track",Icons.Default.WaterDrop), Shop("Shop",Icons.Default.ShoppingBag), Connect("Connect",Icons.Default.Groups)
 }
 private data class Lesson(val name:String,val desc:String,val query:String,val paid:Boolean)
+private data class CommunityPost(val id:Int,val author:String,val message:String,val tag:String,val likes:Int,val pinned:Boolean=false)
+private val originalPosts = listOf(
+ CommunityPost(1,"Aarav M.","Day 12 of showing up. Could not finish a full push-up on Monday; today I managed three clean reps. Tiny win, massive mood boost.","Calisthenics • Original post",37,true),
+ CommunityPost(2,"Mira S.","Tried a 10-minute stretch before work instead of scrolling. My shoulders feel less like concrete. Keeping this one.","Wellness • Original post",52,true),
+ CommunityPost(3,"Kabir R.","Meal-prepped dal, rice and roasted vegetables for three lunches. Future me is extremely grateful.","Food • Original post",24,true),
+ CommunityPost(4,"Nisha P.","First beginner boxing class done. Footwork is harder than it looks. Back next week!","Martial arts • Original post",68,true),
+ CommunityPost(5,"Dev A.","Rest-day walk, 25 minutes, no pace target. Recovery is part of training too.","Recovery • Original post",41,true)
+)
+private fun makeRandomPost(id:Int):CommunityPost {
+ val activities=listOf("a jab-cross combination","a roundhouse kick","a Muay Thai teep","a karate kata","a taekwondo front kick","a boxing footwork drill","a Brazilian jiu-jitsu shrimp escape","a vinyasa flow","a sun salutation","a downward dog","a warrior II pose","a tree pose","a cobra pose","a bridge pose","a plank hold","a handstand drill","a pull-up progression","a push-up set","a squat session","a skipping-rope workout","a mobility routine","a brisk morning walk","a breathing exercise","a yoga balance pose","a calisthenics circuit")
+ val adjectives=listOf("good","bad","neutral","noti","traumatised","happy","sad","angry","smilling","gloomy","intelligent","persistent","handsome","beautiful","cute")
+ val gender=listOf("boy","girl"); val names=listOf("Rohan K.","Anaya S.","Ishaan P.","Tara M.","Vihaan R.","Diya A.","Arjun D.","Meera N.","Reyansh B.","Aditi C.","Kunal J.","Sana V.","Advik L.","Ira G.")
+ return CommunityPost(id,names.random(),"I did ${activities.random()} today. Piyush is a ${adjectives.random()} ${gender.random()}.","Community • just now",Random.nextInt(0,501))
+}
 private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:Int,val carbs:Int,val fat:Int,val ingredients:String,val method:String,val allergens:Set<String>)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable private fun FitnessApp() {
  var tab by remember { mutableStateOf(Tab.Home) }; var dark by remember { mutableStateOf(true) }; var darcula by remember { mutableStateOf(false) }
- var unlocked by remember { mutableStateOf(false) }; var settings by remember { mutableStateOf(false) }; var video by remember { mutableStateOf("") }
+ var unlocked by remember { mutableStateOf(false) }; var settings by remember { mutableStateOf(false) }; var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
+ var randomPosts by remember { mutableStateOf(emptyList<CommunityPost>()) }; var postCounter by remember { mutableIntStateOf(100) }
+ LaunchedEffect(Unit) { while(true) { delay(300_000L); randomPosts=(listOf(makeRandomPost(postCounter))+randomPosts).take(20); postCounter++ } }
  var gateway by remember { mutableStateOf(false) }; var gatewayItems by remember { mutableStateOf(listOf<Pair<String,Int>>()) }
  var promo by remember { mutableStateOf("") }; var promoMsg by remember { mutableStateOf("") }; var water by remember { mutableIntStateOf(3) }; var mealCount by remember { mutableIntStateOf(2) }
  var allergies by remember { mutableStateOf(setOf<String>()) }; var cart by remember { mutableStateOf(setOf<String>()) }; var likes by remember { mutableStateOf(setOf<Int>()) }
@@ -45,16 +59,16 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  val ink=if(dark) Color(0xFFF4F2FA) else Color(0xFF171923); val muted=if(dark) Color(0xFFB8B5C4) else Color(0xFF656978); val lime=Color(0xFFB9F36A)
  val lessons=listOf(
  Lesson("Boxing foundations","Footwork, guard and jab-cross • 18 min","beginner boxing footwork guard jab cross tutorial",false),
- Lesson("Muay Thai basics","Stance, teep and roundhouse • 24 min","muay thai beginner stance teep roundhouse tutorial",true),
- Lesson("Brazilian Jiu-Jitsu","Escapes and positional basics • 21 min","bjj beginner escapes positional basics tutorial",true),
+ Lesson("Muay Thai basics","Stance, teep and roundhouse • 24 min","",false),
+ Lesson("Brazilian Jiu-Jitsu","Escapes and positional basics • 21 min","",false),
  Lesson("Karate fundamentals","Kihon and controlled combinations • 16 min","karate kihon beginner fundamentals tutorial",false),
  Lesson("Vinyasa flow","A steady full-body sequence • 22 min","beginner vinyasa yoga full body flow",false),
- Lesson("Mobility & flexibility","Hips, shoulders and spine • 15 min","beginner yoga mobility flexibility routine",true),
+ Lesson("Mobility & flexibility","Hips, shoulders and spine • 15 min","",false),
  Lesson("Restorative yoga","Gentle evening recovery • 20 min","restorative yoga beginner evening routine",false),
  Lesson("Sun salutations","A guided Surya Namaskar • 12 min","surya namaskar sun salutations guided beginner",false),
  Lesson("Calisthenics starter","Push, pull and squat patterns • 19 min","calisthenics beginner full body workout tutorial",false),
- Lesson("Pull-up progression","Build toward your first pull-up • 17 min","pull up progression beginner tutorial",true),
- Lesson("Handstand pathway","Wrist prep and wall drills • 14 min","beginner handstand wall drills tutorial",true),
+ Lesson("Pull-up progression","Build toward your first pull-up • 17 min","",false),
+ Lesson("Handstand pathway","Wrist prep and wall drills • 14 min","",false),
  Lesson("Core control","Hollow body and plank variations • 13 min","calisthenics beginner core hollow body plank",false))
  val foods=listOf(
  Meal("Peanut-banana oats","Underweight • energy dense",520,20,72,18,"Oats 60g, milk 200ml, banana, peanut butter 1 tbsp, chia 1 tsp","Simmer oats in milk. Top with banana, peanut butter and chia.",setOf("Peanuts","Dairy")),
@@ -67,20 +81,20 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Meal("Lentil & sweet potato","All body types • plant based",475,19,76,11,"Lentils 1 cup, sweet potato 150g, spinach, tahini 1 tsp","Roast sweet potato. Add warm lentils and spinach; finish with tahini.",setOf("Sesame")))
  val products=listOf(Triple("Resistance band set","₹399",699),Triple("Yoga mat • 6 mm","₹699",1199),Triple("Doorway pull-up bar","₹1,299",1899),Triple("Skipping rope","₹249",499),Triple("Adjustable dumbbells","₹2,499",3499),Triple("Foam roller","₹599",999))
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=lime,background=bg,surface=surface,onBackground=ink,onSurface=ink) else lightColorScheme(primary=Color(0xFF426B18),background=bg,surface=surface,onBackground=ink,onSurface=ink)) {
- Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(video.isNotEmpty()) "Watch lesson" else "PLACEHOLDER",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={IconButton(onClick={settings=!settings;video=""}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
- bottomBar={if(!settings && video.isEmpty() && !gateway) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
+ Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(selectedLesson!=null) selectedLesson!!.name else "PLACEHOLDER",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={IconButton(onClick={settings=!settings;video=""}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
+ bottomBar={if(!settings && selectedLesson==null && !gateway) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
  Box(Modifier.fillMaxSize().padding(pad)) {
  when {
+ selectedLesson != null -> CourseDetail(selectedLesson!!,ink,muted,surface,{selectedLesson=null})
  settings -> SettingsScreen(dark,darcula,promo,promoMsg,{dark=it},{darcula=it;dark=true},{promo=it},{if(promo.trim()=="Notiboi Piyush"){unlocked=true;promoMsg="🎉 All paid courses unlocked! Premium martial arts, yoga and calisthenics are now available."}else promoMsg="Code not recognised. Try again."},ink,muted,surface)
- video.isNotEmpty() -> Column(Modifier.fillMaxSize().padding(12.dp)){TextButton(onClick={video=""}){Icon(Icons.Default.ArrowBack,null);Text(" Back to lessons")};Text("Curated YouTube lesson search",color=ink,fontWeight=FontWeight.Bold,fontSize=20.sp);AndroidView(factory={ctx->WebView(ctx).apply{settings.javaScriptEnabled=true;settings.domStorageEnabled=true;webViewClient=WebViewClient();loadUrl("https://www.youtube.com/results?search_query="+java.net.URLEncoder.encode(video,"UTF-8"))}},modifier=Modifier.fillMaxSize())}
  gateway -> Checkout(gatewayItems,ink,muted,surface,{gateway=false})
  else -> when(tab) {
  Tab.Home -> HomeScreen(ink,muted,surface,lime,unlocked,{tab=it})
- Tab.Train -> TrainingScreen(lessons,unlocked,ink,muted,surface,lime,{l->if(l.paid&&!unlocked){gatewayItems=listOf(l.name to 299);gateway=true}else video=l.query})
+ Tab.Train -> TrainingScreen(lessons,ink,muted,surface,lime,{l->selectedLesson=l})
  Tab.Food -> FoodScreen(foods,allergies,{allergies=it},ink,muted,surface)
  Tab.Track -> Tracker(water,{water=(water+1).coerceAtMost(20)},{water=(water-1).coerceAtLeast(0)},mealCount,{mealCount++},ink,muted,surface)
  Tab.Shop -> Shop(products,cart,{cart=if(it in cart)cart-it else cart+it},ink,muted,surface,{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true})
- Tab.Connect -> Community(likes,{i->likes=if(i in likes)likes-i else likes+i},ink,muted,surface)
+ Tab.Connect -> Community(randomPosts,likes,{i->likes=if(i in likes)likes-i else likes+i},ink,muted,surface)
  }
  }
  }
@@ -102,13 +116,13 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  }
 }
 @Composable private fun MiniStat(label:String,value:String,caption:String,surface:Color,ink:Color,muted:Color,modifier:Modifier){Card(modifier,colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(11.dp)){Text(label,color=muted,fontSize=10.sp,fontWeight=FontWeight.Bold);Text(value,color=ink,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(caption,color=muted,fontSize=10.sp)}}}
-@Composable private fun TrainingScreen(lessons:List<Lesson>,unlocked:Boolean,ink:Color,muted:Color,surface:Color,lime:Color,open:(Lesson)->Unit){
+@Composable private fun TrainingScreen(lessons:List<Lesson>,ink:Color,muted:Color,surface:Color,lime:Color,open:(Lesson)->Unit){
  var category by remember{mutableStateOf("Martial arts")};val selected=when(category){"Martial arts"->lessons.take(4);"Yoga"->lessons.drop(4).take(4);else->lessons.drop(8)}
  LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){item{Heading("Train your way","Curated lesson searches • demo catalogue",ink,muted)};item{Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Martial arts","Yoga","Calisthenics").forEach{FilterChip(selected=category==it,onClick={category=it},label={Text(it)})}}}
- items(selected){l->Card(Modifier.fillMaxWidth().clickable{open(l)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface)){Column{Box(Modifier.fillMaxWidth().height(140.dp).background(Brush.linearGradient(listOf(Color(0xFF4D6651),Color(0xFF242E40)))).padding(16.dp),contentAlignment=Alignment.Center){Column(Modifier.blur(if(l.paid&&!unlocked)24.dp else 0.dp),horizontalAlignment=Alignment.CenterHorizontally){Text(if(category=="Yoga")"🧘" else if(category=="Martial arts")"🥊" else "💪",fontSize=42.sp);Text("TRAINING SESSION",color=Color.White,fontWeight=FontWeight.Black,letterSpacing=2.sp)};if(l.paid&&!unlocked)Surface(color=Color.Black.copy(.88f),shape=RoundedCornerShape(30.dp)){Row(Modifier.padding(horizontal=14.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.Lock,null,tint=Color(0xFFFFD166));Spacer(Modifier.width(6.dp));Text("PAID COURSE",color=Color.White,fontWeight=FontWeight.Bold,fontSize=12.sp)}}else Icon(Icons.Default.PlayCircle,null,tint=Color.White,modifier=Modifier.size(38.dp))}
- Column(Modifier.padding(14.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(l.name,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text(if(l.paid&&!unlocked)"₹299" else if(l.paid)"UNLOCKED" else "FREE",color=lime,fontWeight=FontWeight.Bold,fontSize=11.sp)};Text(l.desc,color=muted,fontSize=12.sp);Text("Tap to "+if(l.paid&&!unlocked)"view demo checkout" else "search and play in app",color=muted,fontSize=11.sp)}
+ items(selected){l->Card(Modifier.fillMaxWidth().clickable{open(l)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface)){Column{Box(Modifier.fillMaxWidth().height(140.dp).background(Brush.linearGradient(listOf(Color(0xFF4D6651),Color(0xFF242E40)))).padding(16.dp),contentAlignment=Alignment.Center){Column(Modifier.blur(0.dp),horizontalAlignment=Alignment.CenterHorizontally){Text(if(category=="Yoga")"🧘" else if(category=="Martial arts")"🥊" else "💪",fontSize=42.sp);Text("TRAINING SESSION",color=Color.White,fontWeight=FontWeight.Black,letterSpacing=2.sp)};Icon(Icons.Default.PlayCircle,null,tint=Color.White,modifier=Modifier.size(38.dp))}
+ Column(Modifier.padding(14.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(l.name,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("FREE",color=lime,fontWeight=FontWeight.Bold,fontSize=11.sp)};Text(l.desc,color=muted,fontSize=12.sp);Text("Tap to open course",color=muted,fontSize=11.sp)}
  }}}
- item{Text("Video results play in an in-app web view. YouTube branding and attribution remain visible.",color=muted,fontSize=11.sp)}
+ item{Text("All lessons are original hard-coded course outlines. No external video service is used.",color=muted,fontSize=11.sp)}
  }
 }
 @Composable private fun FoodScreen(foods:List<Meal>,allergies:Set<String>,setAllergies:(Set<String>)->Unit,ink:Color,muted:Color,surface:Color){
@@ -139,9 +153,13 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
 @Composable private fun Checkout(items:List<Pair<String,Int>>,ink:Color,muted:Color,surface:Color,close:()->Unit){
  Column(Modifier.fillMaxSize().background(Color(0xFF090A0E).copy(.96f)).padding(22.dp),verticalArrangement=Arrangement.Center){Panel(surface){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Text("🔒 Demo checkout",color=ink,fontSize=23.sp,fontWeight=FontWeight.ExtraBold);Text("Your selected items",color=muted,fontSize=13.sp);if(items.isEmpty())Text("Premium demo access",color=ink);items.forEach{r->Row{Text(r.first,color=ink,modifier=Modifier.weight(1f));Text("₹"+r.second,color=ink,fontWeight=FontWeight.Bold)}};HorizontalDivider();Row{Text("Total",color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("₹"+items.sumOf{it.second},color=ink,fontWeight=FontWeight.ExtraBold)};Text("Sorry, user. You are too broke to pay. 🥲",color=Color(0xFFE5A64C),fontWeight=FontWeight.Bold,fontSize=16.sp);Text("Fictional gateway only. No payment details are collected.",color=muted,fontSize=12.sp);Button(onClick=close,modifier=Modifier.fillMaxWidth()){Text("Accept my broke status")};TextButton(onClick=close,modifier=Modifier.align(Alignment.CenterHorizontally)){Text("Go back")}}}}
 }
-@Composable private fun Community(likes:Set<Int>,toggle:(Int)->Unit,ink:Color,muted:Color,surface:Color){
- val stories=listOf(Triple("Aarav M.","Day 12 of showing up. Couldn't finish a full push-up on Monday; today I managed three clean reps. Tiny win, massive mood boost.","Calisthenics • 2h ago"),Triple("Mira S.","Tried a 10-minute stretch before work instead of scrolling. My shoulders feel less like concrete. Keeping this one.","Wellness • 4h ago"),Triple("Kabir R.","Meal-prepped dal, rice and roasted veg for three lunches. Future me is extremely grateful.","Food • 6h ago"),Triple("Nisha P.","First beginner boxing class done. Footwork is harder than it looks. Back next week!","Martial arts • 1d ago"),Triple("Dev A.","Rest day walk, 25 minutes, no pace target. Recovery is part of training too.","Recovery • 1d ago"))
- LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Heading("The noticeboard","Fictional community stories for this demo.",ink,muted)};item{Panel(surface){Column(Modifier.padding(14.dp)){Text("✍️ Share your progress",color=ink,fontWeight=FontWeight.Bold);Text("Posting is disabled in this offline placeholder. Enjoy the sample stories.",color=muted,fontSize=12.sp)}}};items(stories.size){i->val s=stories[i];Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row{Text(s.first,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text(s.third,color=muted,fontSize=10.sp)};Text(s.second,color=ink,fontSize=13.sp);TextButton(onClick={toggle(i)}){Text(if(i in likes)"♥ Liked" else "♡ Like")}}}}}
+@Composable private fun Community(randomPosts:List<CommunityPost>,likes:Set<Int>,toggle:(Int)->Unit,ink:Color,muted:Color,surface:Color){
+ val posts=originalPosts+randomPosts
+ LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+ item{Heading("The noticeboard","Five pinned community stories + up to 20 rotating posts.",ink,muted)}
+ item{Panel(surface){Column(Modifier.padding(14.dp)){Text("🗣️ Community feed",color=ink,fontWeight=FontWeight.Bold);Text("A new fictional post appears every five minutes while the app is open. Older generated posts are removed automatically; the five original stories stay pinned.",color=muted,fontSize=12.sp);Text("Pinned: 5   •   Rotating: "+randomPosts.size+" / 20",color=Color(0xFF8BAF52),fontWeight=FontWeight.Bold,fontSize=11.sp)}}}
+ items(posts,key={it.id}){p->Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(p.author,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));if(p.pinned)Text("📌 PINNED",color=Color(0xFFE2A84D),fontSize=10.sp,fontWeight=FontWeight.Bold);else Text(p.tag,color=muted,fontSize=10.sp)};Text(p.message,color=ink,fontSize=13.sp);Row(verticalAlignment=Alignment.CenterVertically){Text("♥ "+(p.likes+(if(p.id in likes)1 else 0)),color=Color(0xFFE58A9B),fontSize=12.sp);Spacer(Modifier.width(10.dp));TextButton(onClick={toggle(p.id)}){Text(if(p.id in likes)"Liked" else "Like")}}}}}
+ }
 }
 @Composable private fun SettingsScreen(dark:Boolean,darcula:Boolean,promo:String,message:String,setDark:(Boolean)->Unit,setDarcula:(Boolean)->Unit,setPromo:(String)->Unit,redeem:()->Unit,ink:Color,muted:Color,surface:Color){
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){Heading("Preferences","Make the app feel like yours.",ink,muted)
@@ -162,4 +180,13 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  var showPaid by remember{mutableStateOf(false)}
  Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){Text("🌱 The little-things pamphlet",color=ink,fontWeight=FontWeight.Bold,fontSize=18.sp);Text("Small habits that support your training.",color=muted,fontSize=12.sp)
  listOf("FREE • Take a 10-minute walk after a meal","FREE • Keep a water bottle where you work","FREE • Add a fruit or vegetable to two meals","FREE • Keep a consistent sleep and wake window","FREE • Warm up gently before training","PAID • Guided habit reset: 14-day checklist","PAID • Recovery and mobility mini-course","PAID • Meal-prep and grocery planning pack").forEach{row->val locked=row.startsWith("PAID");Row(verticalAlignment=Alignment.CenterVertically){Text(if(locked)"🔒" else "✓",color=if(locked)Color(0xFFE5A64C) else Color(0xFF83B85B));Spacer(Modifier.width(7.dp));Text(row.removePrefix("FREE • ").removePrefix("PAID • "),color=ink,fontSize=12.sp,modifier=Modifier.weight(1f));if(locked)Text("PAID",color=Color(0xFFE5A64C),fontSize=10.sp,fontWeight=FontWeight.Bold)}};Text("Tip: choose one small habit for this week instead of changing everything at once.",color=muted,fontSize=11.sp)}}
+}
+
+@Composable private fun CourseDetail(lesson:Lesson,ink:Color,muted:Color,surface:Color,back:()->Unit){
+ var completed by remember(lesson.name){mutableStateOf(false)}
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){
+ TextButton(onClick=back){Icon(Icons.Default.ArrowBack,null);Text(" Back to courses")}
+ Panel(surface){Column(Modifier.padding(17.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){Text("FREE COURSE",color=Color(0xFF8BAF52),fontWeight=FontWeight.Bold,fontSize=11.sp);Text(lesson.name,color=ink,fontSize=23.sp,fontWeight=FontWeight.ExtraBold);Text(lesson.desc,color=muted,fontSize=13.sp);Text("Course outline",color=ink,fontWeight=FontWeight.Bold);listOf("Warm-up • 3–5 minutes of easy movement and joint preparation.","Technique • Learn the fundamental position, breathing and controlled movement.","Practice • Repeat 3 rounds at a comfortable pace, resting between rounds.","Cool-down • Slow down, breathe normally and stretch gently if comfortable.").forEachIndexed{i,line->Row(verticalAlignment=Alignment.Top){Text("${i+1}.",color=Color(0xFF8BAF52),fontWeight=FontWeight.Bold);Spacer(Modifier.width(7.dp));Text(line,color=muted,fontSize=13.sp)}};Button(onClick={completed=!completed},modifier=Modifier.fillMaxWidth()){Text(if(completed)"Completed ✓" else "Mark course complete")}}}
+ Panel(surface){Column(Modifier.padding(15.dp)){Text("Training safety",color=ink,fontWeight=FontWeight.Bold);Text("Move within a comfortable range, use appropriate space and equipment, and stop if you feel pain, dizziness or unusual shortness of breath. For martial arts drills, avoid hard contact and practise with qualified supervision.",color=muted,fontSize=12.sp)}}
+ }
 }
