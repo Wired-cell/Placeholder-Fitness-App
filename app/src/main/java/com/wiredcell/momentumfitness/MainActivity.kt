@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,6 +32,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -83,7 +88,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  var randomPosts by remember { mutableStateOf(emptyList<CommunityPost>()) }; var postCounter by remember { mutableIntStateOf(100) }
  LaunchedEffect(Unit) { while(true) { delay(150_000L); randomPosts=(listOf(makeRandomPost(postCounter))+randomPosts).take(20); postCounter++ } }
  var cartOpen by remember { mutableStateOf(false) }; var gateway by remember { mutableStateOf(false) }; var gatewayItems by remember { mutableStateOf(listOf<Pair<String,Int>>()) }
- var promo by remember { mutableStateOf("") }; var promoMsg by remember { mutableStateOf("") }; var water by remember { mutableIntStateOf(0) }; var mealCount by remember { mutableIntStateOf(0) }
+ var promo by remember { mutableStateOf("") }; var promoMsg by remember { mutableStateOf("") }; var showUnlockAnimation by remember { mutableStateOf(false) }; var water by remember { mutableIntStateOf(0) }; var mealCount by remember { mutableIntStateOf(0) }
  var allergies by remember { mutableStateOf(setOf<String>()) }; var cart by remember { mutableStateOf(setOf<String>()) }; var likes by remember { mutableStateOf(setOf<Int>()) }
  val bg=if(!dark) Color(0xFFF4F5F7) else if(darcula) Color(0xFF000000) else Color(0xFF101116)
  val surface=if(!dark) Color.White else if(darcula) Color(0xFF101014) else Color(0xFF1C1E27)
@@ -178,14 +183,14 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  bottomBar={if(profileComplete && !settings && !cartOpen && selectedLesson==null && !gateway && !premiumOpen) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
  Box(Modifier.fillMaxSize().padding(pad)) {
  when {
- cartOpen -> CartScreen(products,cart,{cart=if(it in cart)cart-it else cart+it},promo,{promo=it},promoMsg,{code->if(code.trim()=="Notiboi Piyush"){unlocked=true;prefs.edit().putBoolean("promo_unlocked",true).apply();promoMsg="🎉 All paid courses unlocked! Premium courses are now available on this device."}else promoMsg="Code not recognised. Try again."},{cartOpen=false;gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true},ink,muted,surface)
+ cartOpen -> CartScreen(products,cart,{cart=if(it in cart)cart-it else cart+it},promo,{promo=it},promoMsg,{code->if(code.trim()=="Notiboi Piyush"){unlocked=true;prefs.edit().putBoolean("promo_unlocked",true).apply();promoMsg="";showUnlockAnimation=true}else promoMsg="Code not recognised. Try again."},{cartOpen=false;gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true},ink,muted,surface)
  premiumOpen -> PremiumPaywall(ink,muted,surface,unlocked,cart,{n->cart=if(n in cart)cart-n else cart+n},{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true},{premiumOpen=false})
  selectedLesson != null -> CourseDetail(selectedLesson!!,ink,muted,surface,{selectedLesson=null})
  settings -> SettingsScreen(dark,darcula,profileName,profileDob,profileHeight,profileWeight,profileLevel,profileHobbies,{dark=it;if(!it)darcula=false},{darcula=it;dark=true},ink,muted,surface)
  gateway -> Checkout(gatewayItems,ink,muted,surface,{gateway=false;cartOpen=true})
  !profileComplete -> OnboardingScreen(onboardingStep,{onboardingStep=it},profileName,{profileName=it},profileDob,{profileDob=it},profileHeight,{profileHeight=it},profileWeight,{profileWeight=it},profileLevel,{profileLevel=it},profileHobbies,{profileHobbies=it},prefs,{profileComplete=true},ink,muted,surface)
  else -> when(tab) {
- Tab.Home -> HomeScreen(ink,muted,surface,lime,unlocked,streakDays,workoutsWeek,expandedFoods.size,profileHeight,profileWeight,{tab=it})
+ Tab.Home -> HomeScreen(ink,muted,surface,lime,unlocked,streakDays,workoutsWeek,expandedFoods.size,profileHeight,profileWeight,{tab=it},{premiumOpen=true})
  Tab.Train -> TrainingScreen(lessons,products,ink,muted,surface,lime,unlocked,cart,{n->cart=if(n in cart)cart-n else cart+n},{l->selectedLesson=l})
  Tab.Food -> FoodScreen(expandedFoods,allergies,{allergies=it},ink,muted,surface)
  Tab.Track -> Tracker(water,{water=(water+1).coerceAtMost(20)},{water=(water-1).coerceAtLeast(0)},mealCount,{mealCount++},foodLogs,{name,kcal->foodLogs=foodLogs+FoodLog(name,kcal);mealCount++},foodName,{foodName=it},foodKcal,{foodKcal=it},streakDays,workoutsWeek,workoutMinutes,{streakDays++;workoutsWeek++;workoutMinutes+=30},ink,muted,surface)
@@ -193,7 +198,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Tab.Connect -> Community(randomPosts,likes,{i->likes=if(i in likes)likes-i else likes+i},ink,muted,surface)
  }
  }
- if(profileComplete && !settings && !cartOpen && !gateway && selectedLesson==null && !premiumOpen) PremiumShelf(Modifier.align(Alignment.BottomCenter),surface,ink,muted,{premiumOpen=true})
+ if(showUnlockAnimation) UnlockCelebration { showUnlockAnimation=false }
  }
  }
  }
@@ -273,11 +278,36 @@ private val asanaInstructions=listOf(
  }
 }
 
+@Composable private fun PremiumHomeSection(surface:Color,ink:Color,muted:Color,unlocked:Boolean,onClick:()->Unit){
+ Column(Modifier.fillMaxWidth().clickable(onClick=onClick).background(Brush.linearGradient(listOf(Color(0xFF29213C),Color(0xFF11121B))),RoundedCornerShape(22.dp)).padding(18.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
+  Row(verticalAlignment=Alignment.CenterVertically){Text("🔒 PREMIUM COURSE COLLECTION",color=Color(0xFFE8B75A),fontWeight=FontWeight.Black,fontSize=12.sp,modifier=Modifier.weight(1f));Icon(Icons.Default.ChevronRight,null,tint=Color.White)}
+  Text(if(unlocked)"All courses unlocked" else "Explore advanced programmes",color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Bold)
+  Text(if(unlocked)"Your full course library is ready." else "Yoga mastery • Martial arts • Strength & conditioning",color=Color(0xFFD0CDDA),fontSize=13.sp)
+  Button(onClick=onClick,colors=ButtonDefaults.buttonColors(containerColor=Color(0xFFB9F36A),contentColor=Color.Black)){Text(if(unlocked)"Open my courses" else "Explore courses")}
+ }
+}
+@Composable private fun UnlockCelebration(onDone:()->Unit){
+ val progress= remember { Animatable(0f) }
+ LaunchedEffect(Unit){progress.animateTo(1f,animationSpec=tween(durationMillis=2800))}
+ Dialog(onDismissRequest={},properties=DialogProperties(usePlatformDefaultWidth=false,decorFitsSystemWindows=false)){
+  Box(Modifier.fillMaxSize().background(Color(0xFF061B32))){
+   Box(Modifier.fillMaxWidth().fillMaxHeight(progress.value.coerceAtLeast(0.02f)).align(Alignment.BottomCenter).background(Brush.verticalGradient(listOf(Color(0xFF31BDE2),Color(0xFF0875B9),Color(0xFF06416F)))))
+   Text("🌊",fontSize=38.sp,modifier=Modifier.align(Alignment.TopStart).padding(start=25.dp,top=70.dp))
+   Text("💦",fontSize=32.sp,modifier=Modifier.align(Alignment.CenterEnd).padding(end=28.dp))
+   Column(Modifier.align(Alignment.Center).offset(y=((1f-progress.value)*220f).dp).padding(horizontal=20.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(12.dp)){
+    Text("🚤",fontSize=104.sp)
+    Surface(color=Color(0xFF12324A),shape=RoundedCornerShape(18.dp),shadowElevation=12.dp){Text("ALL COURSES UNLOCKED",modifier=Modifier.padding(horizontal=22.dp,vertical=16.dp),color=Color.White,fontSize=19.sp,fontWeight=FontWeight.Black,textAlign=androidx.compose.ui.text.style.TextAlign.Center)}
+   }
+   if(progress.value>=0.99f)Button(onClick=onDone,modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal=28.dp,vertical=36.dp),colors=ButtonDefaults.buttonColors(containerColor=Color.White,contentColor=Color(0xFF06416F))){Text("Done",fontSize=18.sp,fontWeight=FontWeight.Bold)}
+   else Text("Unlocking your course collection…",modifier=Modifier.align(Alignment.BottomCenter).padding(bottom=42.dp),color=Color.White,fontWeight=FontWeight.SemiBold)
+  }
+ }
+}
 @Composable private fun Heading(title:String,sub:String,ink:Color,muted:Color){Column(verticalArrangement=Arrangement.spacedBy(3.dp)){Text(title,color=ink,fontSize=23.sp,fontWeight=FontWeight.Bold);Text(sub,color=muted,fontSize=13.sp)}}
 @Composable private fun Panel(surface:Color,content:@Composable ColumnScope.()->Unit){Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface),content=content)}
-@Composable private fun HomeScreen(ink:Color,muted:Color,surface:Color,lime:Color,unlocked:Boolean,streak:Int,workouts:Int,recipeCount:Int,heightCm:String,weightKg:String,navigate:(Tab)->Unit){
+@Composable private fun HomeScreen(ink:Color,muted:Color,surface:Color,lime:Color,unlocked:Boolean,streak:Int,workouts:Int,recipeCount:Int,heightCm:String,weightKg:String,navigate:(Tab)->Unit,openPremium:()->Unit){
  LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(15.dp)){
- item{Column(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Color(0xFF344A24),Color(0xFF18251B))),RoundedCornerShape(26.dp)).padding(22.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){Text("YOUR NEXT REP STARTS HERE",color=lime,fontSize=11.sp,fontWeight=FontWeight.Bold);Text("Build a stronger\nyou.",color=Color.White,fontSize=34.sp,lineHeight=38.sp,fontWeight=FontWeight.ExtraBold);Text("Train smart. Eat well. Show up.",color=Color.White);Button(onClick={navigate(Tab.Train)},colors=ButtonDefaults.buttonColors(containerColor=lime,contentColor=Color.Black)){Text("Explore training");Icon(Icons.Default.ArrowForward,null)}}}
+ item{PremiumHomeSection(surface,ink,muted,unlocked,openPremium)}
  item{Row(horizontalArrangement=Arrangement.spacedBy(9.dp)){MiniStat("STREAK",streak.toString()+" days","current run",surface,ink,muted,Modifier.weight(1f));MiniStat("WORKOUTS",workouts.toString(),"this week",surface,ink,muted,Modifier.weight(1f));MiniStat("RECIPES",recipeCount.toString(),"in your library",surface,ink,muted,Modifier.weight(1f))}}
  item{Heading("Your training floor","Pick a discipline and get moving.",ink,muted)}
  item{WorkoutPlanner(ink,muted,surface,heightCm,weightKg)}
