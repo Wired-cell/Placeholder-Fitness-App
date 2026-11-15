@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() { override fun onCreate(savedInstanceSt
 private enum class Tab(val title:String,val icon:androidx.compose.ui.graphics.vector.ImageVector) {
  Home("Home",Icons.Default.Home), Train("Train",Icons.Default.FitnessCenter), Food("Food",Icons.Default.Restaurant), Track("Track",Icons.Default.WaterDrop), Shop("Shop",Icons.Default.ShoppingBag), Connect("Connect",Icons.Default.Groups)
 }
-private data class Lesson(val name:String,val desc:String,val query:String,val paid:Boolean)
+private data class Lesson(val name:String,val desc:String)
 private data class CommunityPost(val id:Int,val author:String,val message:String,val tag:String,val likes:Int,val pinned:Boolean=false)
 private val originalPosts = listOf(
  CommunityPost(1,"Aarav M.","Day 12 of showing up. Could not finish a full push-up on Monday; today I managed three clean reps. Tiny win, massive mood boost.","Calisthenics • Original post",37,true),
@@ -58,18 +58,18 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  val surface=if(!dark) Color.White else if(darcula) Color(0xFF302D36) else Color(0xFF1C1E27)
  val ink=if(dark) Color(0xFFF4F2FA) else Color(0xFF171923); val muted=if(dark) Color(0xFFB8B5C4) else Color(0xFF656978); val lime=Color(0xFFB9F36A)
  val lessons=listOf(
- Lesson("Boxing foundations","Footwork, guard and jab-cross • 18 min","beginner boxing footwork guard jab cross tutorial",false),
- Lesson("Muay Thai basics","Stance, teep and roundhouse • 24 min","",false),
- Lesson("Brazilian Jiu-Jitsu","Escapes and positional basics • 21 min","",false),
- Lesson("Karate fundamentals","Kihon and controlled combinations • 16 min","karate kihon beginner fundamentals tutorial",false),
- Lesson("Vinyasa flow","A steady full-body sequence • 22 min","beginner vinyasa yoga full body flow",false),
- Lesson("Mobility & flexibility","Hips, shoulders and spine • 15 min","",false),
- Lesson("Restorative yoga","Gentle evening recovery • 20 min","restorative yoga beginner evening routine",false),
- Lesson("Sun salutations","A guided Surya Namaskar • 12 min","surya namaskar sun salutations guided beginner",false),
- Lesson("Calisthenics starter","Push, pull and squat patterns • 19 min","calisthenics beginner full body workout tutorial",false),
- Lesson("Pull-up progression","Build toward your first pull-up • 17 min","",false),
- Lesson("Handstand pathway","Wrist prep and wall drills • 14 min","",false),
- Lesson("Core control","Hollow body and plank variations • 13 min","calisthenics beginner core hollow body plank",false))
+ Lesson("Boxing foundations","Footwork, guard and jab-cross • 18 min"),
+ Lesson("Muay Thai basics","Stance, teep and roundhouse • 24 min"),
+ Lesson("Brazilian Jiu-Jitsu","Escapes and positional basics • 21 min"),
+ Lesson("Karate fundamentals","Kihon and controlled combinations • 16 min"),
+ Lesson("Vinyasa flow","A steady full-body sequence • 22 min"),
+ Lesson("Mobility & flexibility","Hips, shoulders and spine • 15 min"),
+ Lesson("Restorative yoga","Gentle evening recovery • 20 min"),
+ Lesson("Sun salutations","A guided Surya Namaskar • 12 min"),
+ Lesson("Calisthenics starter","Push, pull and squat patterns • 19 min"),
+ Lesson("Pull-up progression","Build toward your first pull-up • 17 min"),
+ Lesson("Handstand pathway","Wrist prep and wall drills • 14 min"),
+ Lesson("Core control","Hollow body and plank variations • 13 min"))
  val foods=listOf(
  Meal("Peanut-banana oats","Underweight • energy dense",520,20,72,18,"Oats 60g, milk 200ml, banana, peanut butter 1 tbsp, chia 1 tsp","Simmer oats in milk. Top with banana, peanut butter and chia.",setOf("Peanuts","Dairy")),
  Meal("Paneer rice bowl","Underweight • vegetarian",610,27,78,20,"Rice 1 cup, paneer 100g, peas ½ cup, curd ½ cup","Pan-sear paneer with spices. Serve over rice with peas and curd.",setOf("Dairy")),
@@ -118,7 +118,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
 @Composable private fun MiniStat(label:String,value:String,caption:String,surface:Color,ink:Color,muted:Color,modifier:Modifier){Card(modifier,colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(11.dp)){Text(label,color=muted,fontSize=10.sp,fontWeight=FontWeight.Bold);Text(value,color=ink,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(caption,color=muted,fontSize=10.sp)}}}
 @Composable private fun TrainingScreen(lessons:List<Lesson>,ink:Color,muted:Color,surface:Color,lime:Color,open:(Lesson)->Unit){
  var category by remember{mutableStateOf("Martial arts")};val selected=when(category){"Martial arts"->lessons.take(4);"Yoga"->lessons.drop(4).take(4);else->lessons.drop(8)}
- LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){item{Heading("Train your way","Curated lesson searches • demo catalogue",ink,muted)};item{Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Martial arts","Yoga","Calisthenics").forEach{FilterChip(selected=category==it,onClick={category=it},label={Text(it)})}}}
+ LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){item{Heading("Train your way","Original in-app training programmes • demo catalogue",ink,muted)};item{Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Martial arts","Yoga","Calisthenics").forEach{FilterChip(selected=category==it,onClick={category=it},label={Text(it)})}}}
  items(selected){l->Card(Modifier.fillMaxWidth().clickable{open(l)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface)){Column{Box(Modifier.fillMaxWidth().height(140.dp).background(Brush.linearGradient(listOf(Color(0xFF4D6651),Color(0xFF242E40)))).padding(16.dp),contentAlignment=Alignment.Center){Column(Modifier.blur(0.dp),horizontalAlignment=Alignment.CenterHorizontally){Text(if(category=="Yoga")"🧘" else if(category=="Martial arts")"🥊" else "💪",fontSize=42.sp);Text("TRAINING SESSION",color=Color.White,fontWeight=FontWeight.Black,letterSpacing=2.sp)};Icon(Icons.Default.PlayCircle,null,tint=Color.White,modifier=Modifier.size(38.dp))}
  Column(Modifier.padding(14.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(l.name,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("FREE",color=lime,fontWeight=FontWeight.Bold,fontSize=11.sp)};Text(l.desc,color=muted,fontSize=12.sp);Text("Tap to open course",color=muted,fontSize=11.sp)}
  }}}
