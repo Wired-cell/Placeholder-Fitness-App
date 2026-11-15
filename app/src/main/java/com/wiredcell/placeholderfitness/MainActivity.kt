@@ -96,6 +96,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  item{HabitPamphlet(ink,muted,surface)}
  item{listOf("🥊  Martial arts" to "Technique and discipline","🧘  Yoga" to "Mobility and mindful movement","💪  Calisthenics" to "Bodyweight strength").forEach{p->Panel(surface){Row(Modifier.clickable{navigate(Tab.Train)}.padding(15.dp),verticalAlignment=Alignment.CenterVertically){Text(p.first,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text(p.second,color=muted,fontSize=11.sp);Icon(Icons.Default.ChevronRight,null,tint=muted)}};Spacer(Modifier.height(8.dp))}}
  item{Panel(surface){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(7.dp)){Text("🎁 Welcome offer",color=ink,fontWeight=FontWeight.Bold,fontSize=18.sp);Text("SIGN-UP SPECIAL: "+listOf(15,20,25,30,35).random()+"% OFF selected demo gear today.",color=muted);Text("Fake offer • no purchase required",color=muted,fontSize=11.sp)}}}
+ item{Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){Text("🎂 Birthday treat",color=ink,fontWeight=FontWeight.Bold);Text("Birthday month bonus: "+listOf(20,25,30,40,50).random()+"% OFF a fictional premium bundle. Demo offer only; no profile or date of birth is collected.",color=muted,fontSize=12.sp)}}}
  item{Text("Placeholder demo • sample activity and offers are local only.",color=muted,fontSize=11.sp)}
  }
 }
