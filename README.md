@@ -4,9 +4,9 @@ Native Android fitness demo built with Kotlin and Jetpack Compose. Hard-coded sa
 
 ## Included
 - Martial arts, yoga and calisthenics lesson catalogue with blurred premium cards and fictional checkout.
-- Curated in-app YouTube search/playback; attribution remains visible.
+- Fully offline, hard-coded course outlines with free in-app lesson detail pages; no YouTube integration.
 - Recipe cards with estimated calories/macros and allergen filtering.
-- Water and meal trackers, demo storefront/cart, fake offers, fictional community stories.
+- Water and meal trackers, demo storefront/cart, fake offers, five pinned fictional community stories plus a five-minute random post generator, retaining the newest 20 generated posts.
 - Light, dark and Darcula/AMOLED themes; promo code `Notiboi Piyush` unlocks premium lessons locally.
 
 ## Build APK
@@ -25,3 +25,6 @@ The general food-group and balanced-meal approach is informed by the ICMR–Nati
 
 - ICMR–NIN: https://www.nin.res.in/dietaryguidelines/pdfjs/locale/DGI24thJune2024fin.pdf
 - NHS balanced diet: https://www.nhs.uk/Live-well/eat-well/how-to-eat-a-balanced-diet/eating-a-balanced-diet/
+
+## Community feed behavior
+The five original demo stories are pinned and never removed. While the app process is active, one fictional post is generated every five minutes using a random activity/pose and the two requested Piyush sentence templates. Generated posts receive random like counts; only the newest 20 generated posts are retained. No internet connection or server is used.
