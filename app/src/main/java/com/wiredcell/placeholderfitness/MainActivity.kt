@@ -33,7 +33,8 @@ private enum class Tab(val title:String,val icon:androidx.compose.ui.graphics.ve
 }
 private data class Lesson(val name:String,val desc:String,val query:String,val paid:Boolean)
 private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:Int,val carbs:Int,val fat:Int,val ingredients:String,val method:String,val allergens:Set<String>)
-@OptIn(ExperimentalMaterial3Api::class)\n@Composable private fun FitnessApp() {
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable private fun FitnessApp() {
  var tab by remember { mutableStateOf(Tab.Home) }; var dark by remember { mutableStateOf(true) }; var darcula by remember { mutableStateOf(false) }
  var unlocked by remember { mutableStateOf(false) }; var settings by remember { mutableStateOf(false) }; var video by remember { mutableStateOf("") }
  var gateway by remember { mutableStateOf(false) }; var gatewayItems by remember { mutableStateOf(listOf<Pair<String,Int>>()) }
