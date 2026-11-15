@@ -1,5 +1,7 @@
 package com.wiredcell.placeholderfitness
 import android.os.Bundle
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -22,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import kotlin.random.Random
 import kotlinx.coroutines.delay
 
@@ -50,7 +53,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  var tab by remember { mutableStateOf(Tab.Home) }; var dark by remember { mutableStateOf(true) }; var darcula by remember { mutableStateOf(false) }
  var unlocked by remember { mutableStateOf(false) }; var settings by remember { mutableStateOf(false) }; var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
  var randomPosts by remember { mutableStateOf(emptyList<CommunityPost>()) }; var postCounter by remember { mutableIntStateOf(100) }
- LaunchedEffect(Unit) { while(true) { delay(300_000L); randomPosts=(listOf(makeRandomPost(postCounter))+randomPosts).take(20); postCounter++ } }
+ LaunchedEffect(Unit) { while(true) { delay(150_000L); randomPosts=(listOf(makeRandomPost(postCounter))+randomPosts).take(20); postCounter++ } }
  var gateway by remember { mutableStateOf(false) }; var gatewayItems by remember { mutableStateOf(listOf<Pair<String,Int>>()) }
  var promo by remember { mutableStateOf("") }; var promoMsg by remember { mutableStateOf("") }; var water by remember { mutableIntStateOf(3) }; var mealCount by remember { mutableIntStateOf(2) }
  var allergies by remember { mutableStateOf(setOf<String>()) }; var cart by remember { mutableStateOf(setOf<String>()) }; var likes by remember { mutableStateOf(setOf<Int>()) }
@@ -81,7 +84,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Meal("Lentil & sweet potato","All body types • plant based",475,19,76,11,"Lentils 1 cup, sweet potato 150g, spinach, tahini 1 tsp","Roast sweet potato. Add warm lentils and spinach; finish with tahini.",setOf("Sesame")))
  val products=listOf(Triple("Resistance band set","₹399",699),Triple("Yoga mat • 6 mm","₹699",1199),Triple("Doorway pull-up bar","₹1,299",1899),Triple("Skipping rope","₹249",499),Triple("Adjustable dumbbells","₹2,499",3499),Triple("Foam roller","₹599",999))
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=lime,background=bg,surface=surface,onBackground=ink,onSurface=ink) else lightColorScheme(primary=Color(0xFF426B18),background=bg,surface=surface,onBackground=ink,onSurface=ink)) {
- Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(selectedLesson!=null) selectedLesson!!.name else "PLACEHOLDER",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
+ Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(selectedLesson!=null) selectedLesson!!.name else "MOMENTUM",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
  bottomBar={if(!settings && selectedLesson==null && !gateway) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
  Box(Modifier.fillMaxSize().padding(pad)) {
  when {
@@ -113,7 +116,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  item{listOf("🥊  Martial arts" to "Technique and discipline","🧘  Yoga" to "Mobility and mindful movement","💪  Calisthenics" to "Bodyweight strength").forEach{p->Panel(surface){Row(Modifier.clickable{navigate(Tab.Train)}.padding(15.dp),verticalAlignment=Alignment.CenterVertically){Text(p.first,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text(p.second,color=muted,fontSize=11.sp);Icon(Icons.Default.ChevronRight,null,tint=muted)}};Spacer(Modifier.height(8.dp))}}
  item{Panel(surface){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(7.dp)){Text("🎁 Welcome offer",color=ink,fontWeight=FontWeight.Bold,fontSize=18.sp);Text("SIGN-UP SPECIAL: "+listOf(15,20,25,30,35).random()+"% OFF selected demo gear today.",color=muted);Text("Fake offer • no purchase required",color=muted,fontSize=11.sp)}}}
  item{Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){Text("🎂 Birthday treat",color=ink,fontWeight=FontWeight.Bold);Text("Birthday month bonus: "+listOf(20,25,30,40,50).random()+"% OFF a fictional premium bundle. Demo offer only; no profile or date of birth is collected.",color=muted,fontSize=12.sp)}}}
- item{Text("Placeholder demo • sample activity and offers are local only.",color=muted,fontSize=11.sp)}
+ item{Text("Your activity and progress are tracked locally on this device.",color=muted,fontSize=11.sp)}
  }
 }
 @Composable private fun MiniStat(label:String,value:String,caption:String,surface:Color,ink:Color,muted:Color,modifier:Modifier){Card(modifier,colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(11.dp)){Text(label,color=muted,fontSize=10.sp,fontWeight=FontWeight.Bold);Text(value,color=ink,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(caption,color=muted,fontSize=10.sp)}}}
@@ -158,15 +161,15 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  val posts=originalPosts+randomPosts
  LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
  item{Heading("The noticeboard","Five pinned community stories + up to 20 rotating posts.",ink,muted)}
- item{Panel(surface){Column(Modifier.padding(14.dp)){Text("🗣️ Community feed",color=ink,fontWeight=FontWeight.Bold);Text("A new fictional post appears every five minutes while the app is open. Older generated posts are removed automatically; the five original stories stay pinned.",color=muted,fontSize=12.sp);Text("Pinned: 5   •   Rotating: "+randomPosts.size+" / 20",color=Color(0xFF8BAF52),fontWeight=FontWeight.Bold,fontSize=11.sp)}}}
+ item{Panel(surface){Column(Modifier.padding(14.dp)){Text("🗣️ Community feed",color=ink,fontWeight=FontWeight.Bold);Text("A new community post appears every 2 minutes 30 seconds while the app is open. Older generated posts are removed automatically; the five original stories stay pinned.",color=muted,fontSize=12.sp);Text("Pinned: 5   •   Rotating: "+randomPosts.size+" / 20",color=Color(0xFF8BAF52),fontWeight=FontWeight.Bold,fontSize=11.sp)}}}
  items(posts,key={it.id}){p->Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(p.author,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));if(p.pinned)Text("📌 PINNED",color=Color(0xFFE2A84D),fontSize=10.sp,fontWeight=FontWeight.Bold);else Text(p.tag,color=muted,fontSize=10.sp)};Text(p.message,color=ink,fontSize=13.sp);Row(verticalAlignment=Alignment.CenterVertically){Text("♥ "+(p.likes+(if(p.id in likes)1 else 0)),color=Color(0xFFE58A9B),fontSize=12.sp);Spacer(Modifier.width(10.dp));TextButton(onClick={toggle(p.id)}){Text(if(p.id in likes)"Liked" else "Like")}}}}}
  }
 }
 @Composable private fun SettingsScreen(dark:Boolean,darcula:Boolean,promo:String,message:String,setDark:(Boolean)->Unit,setDarcula:(Boolean)->Unit,setPromo:(String)->Unit,redeem:()->Unit,ink:Color,muted:Color,surface:Color){
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){Heading("Preferences","Make the app feel like yours.",ink,muted)
- Panel(surface){Column(Modifier.padding(16.dp)){Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Dark theme",color=ink,fontWeight=FontWeight.Bold);Text("Switch between light and dark",color=muted,fontSize=12.sp)};Switch(checked=dark,onCheckedChange=setDark)};HorizontalDivider();Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Darcula / AMOLED",color=ink,fontWeight=FontWeight.Bold);Text("Use deeper charcoal surfaces",color=muted,fontSize=12.sp)};Switch(checked=darcula,onCheckedChange=setDarcula,enabled=dark)}}}
+ Panel(surface){Column(Modifier.padding(16.dp)){Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Dark theme",color=ink,fontWeight=FontWeight.Bold);Text("Switch between light and dark",color=muted,fontSize=12.sp)};Switch(checked=dark,onCheckedChange={setDark(it);if(!it)setDarcula(false)})};HorizontalDivider();Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Darcula / AMOLED",color=ink,fontWeight=FontWeight.Bold);Text("Use deeper charcoal surfaces",color=muted,fontSize=12.sp)};Switch(checked=dark && darcula,onCheckedChange={if(it){setDark(true);setDarcula(true)}else setDarcula(false)},enabled=dark)}}}
  Panel(surface){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){Text("🎟️ Promo code",color=ink,fontWeight=FontWeight.Bold,fontSize=18.sp);Text("Enter the demo code to unlock premium lessons locally.",color=muted,fontSize=12.sp);OutlinedTextField(value=promo,onValueChange=setPromo,label={Text("Enter promo code")},modifier=Modifier.fillMaxWidth(),singleLine=true);Button(onClick=redeem,modifier=Modifier.fillMaxWidth()){Text("Redeem code")};if(message.isNotBlank())Text(message,color=if(message.startsWith("🎉"))Color(0xFF82B95A) else Color(0xFFE5A64C),fontSize=12.sp)}}
- Panel(surface){Column(Modifier.padding(16.dp)){Text("About this build",color=ink,fontWeight=FontWeight.Bold);Text("Placeholder Fitness v1.0 • hard-coded demo content • no accounts, server, payment processing or personal data upload.",color=muted,fontSize=12.sp)}}
+ Panel(surface){Column(Modifier.padding(16.dp)){Text("About this build",color=ink,fontWeight=FontWeight.Bold);Text("Momentum Fitness • offline-first training, food and activity tools. No account or payment details are collected.",color=muted,fontSize=12.sp)}}
  }
 }
 
