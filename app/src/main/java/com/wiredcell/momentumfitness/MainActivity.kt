@@ -63,7 +63,6 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  var profileWeight by remember { mutableStateOf(prefs.getString("weight","") ?: "") }
  var profileLevel by remember { mutableStateOf(prefs.getString("level","Beginner") ?: "Beginner") }
  var profileHobbies by remember { mutableStateOf(prefs.getString("hobbies","") ?: "") }
- var profileEmail by remember { mutableStateOf(prefs.getString("google_email","") ?: "") }
  var profileComplete by remember { mutableStateOf(prefs.getBoolean("profile_complete",false)) }
  var onboardingStep by remember { mutableIntStateOf(0) }
  var tab by remember { mutableStateOf(Tab.Home) }; var dark by remember { mutableStateOf(true) }; var darcula by remember { mutableStateOf(true) }
@@ -173,7 +172,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  when {
  premiumOpen -> PremiumPaywall(ink,muted,surface,cart,{n->cart=if(n in cart)cart-n else cart+n},{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true},{premiumOpen=false})
  selectedLesson != null -> CourseDetail(selectedLesson!!,ink,muted,surface,{selectedLesson=null})
- settings -> SettingsScreen(dark,darcula,profileName,profileDob,profileHeight,profileWeight,profileLevel,profileHobbies,profileEmail,{dark=it;if(!it)darcula=false},{darcula=it;dark=true},ink,muted,surface)
+ settings -> SettingsScreen(dark,darcula,profileName,profileDob,profileHeight,profileWeight,profileLevel,profileHobbies,{dark=it;if(!it)darcula=false},{darcula=it;dark=true},ink,muted,surface)
  gateway -> Checkout(gatewayItems,ink,muted,surface,{gateway=false})
  !profileComplete -> OnboardingScreen(onboardingStep,{onboardingStep=it},profileName,{profileName=it},profileDob,{profileDob=it},profileHeight,{profileHeight=it},profileWeight,{profileWeight=it},profileLevel,{profileLevel=it},profileHobbies,{profileHobbies=it},profileEmail,{profileEmail=it},prefs,{profileComplete=true},ink,muted,surface)
  else -> when(tab) {
@@ -238,17 +237,6 @@ private val asanaInstructions=listOf(
  val shown=asanaNames.filter{it.contains(q,true)}
  Column(verticalArrangement=Arrangement.spacedBy(7.dp)){Text("40-POSE ASANA LIBRARY",color=ink,fontWeight=FontWeight.Bold,fontSize=16.sp);OutlinedTextField(value=q,onValueChange={q=it},label={Text("Search poses")},modifier=Modifier.fillMaxWidth(),singleLine=true)
  shown.forEach{pose->val i=asanaNames.indexOf(pose);Card(Modifier.fillMaxWidth().clickable{expanded=if(expanded==pose)"" else pose},colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(12.dp)){Column(Modifier.padding(11.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(pose,color=ink,fontWeight=FontWeight.SemiBold,fontSize=13.sp,modifier=Modifier.weight(1f));Icon(if(expanded==pose)Icons.Default.ExpandLess else Icons.Default.ExpandMore,null,tint=muted)};if(expanded==pose){Text("How to practise",color=ink,fontWeight=FontWeight.Bold,fontSize=12.sp);Text(asanaInstructions[i],color=muted,fontSize=12.sp);Text("Breathe normally. Use props or a smaller range, and stop if you feel pain, numbness or dizziness.",color=muted,fontSize=11.sp)}}}}
- }
-}
-@Composable private fun YouTubeLibrary(ink:Color,muted:Color,surface:Color,cart:Set<String>,toggleCart:(String)->Unit){
- val context=LocalContext.current
- val freeVideos=listOf("20 Min Yoga Flow • Charlie Follows" to "https://www.youtube.com/watch?v=fxT-5bmzWbk","20 Min Low Impact Cardio • Heather Robertson" to "https://www.youtube.com/watch?v=cA11MYXhBfI","Beginner Bodyweight Workout • Sunny Health" to "https://www.youtube.com/watch?v=WrXeb6EZrK0","10 Min Sun Salutation • Vedam" to "https://www.youtube.com/watch?v=hJolNd62Qhs","Muay Thai 101 • Sean Fagan" to "https://www.youtube.com/watch?v=640rsP_0WgY")
- val paidVideos=listOf("Advanced Yoga Video Course" to "₹499","Strength Training Video Course" to "₹599","Martial Arts Video Course" to "₹699")
- Column(verticalArrangement=Arrangement.spacedBy(7.dp)){
- Text("FREE VIDEO GUIDES",color=ink,fontWeight=FontWeight.Bold,fontSize=16.sp)
- freeVideos.forEach{(title,url)->Card(colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(12.dp)){Row(Modifier.fillMaxWidth().clickable{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url)))}.padding(11.dp),verticalAlignment=Alignment.CenterVertically){Text("▶",color=Color(0xFFE45C54),fontSize=21.sp);Spacer(Modifier.width(9.dp));Column(Modifier.weight(1f)){Text(title,color=ink,fontWeight=FontWeight.SemiBold,fontSize=13.sp);Text("FREE • YouTube",color=Color(0xFF8BAF52),fontSize=10.sp,fontWeight=FontWeight.Bold)};Icon(Icons.Default.OpenInNew,null,tint=muted)}}}
- Text("PAID VIDEO COURSES",color=ink,fontWeight=FontWeight.Bold,fontSize=16.sp)
- paidVideos.forEach{(title,price)->Panel(surface){Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically){Text("🎬",fontSize=25.sp);Column(Modifier.weight(1f).padding(horizontal=9.dp)){Text(title,color=ink,fontWeight=FontWeight.Bold,fontSize=13.sp);Text(price+" • Full course access",color=muted,fontSize=11.sp)};Button(onClick={toggleCart(title)}){Text(if(title in cart)"Remove" else "Add to cart")}}}}
  }
 }
 @Composable private fun PremiumShelf(modifier:Modifier,surface:Color,ink:Color,muted:Color,onClick:()->Unit){Column(modifier.fillMaxWidth().background(Color(0xE9101116),RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).clickable(onClick=onClick).padding(10.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text("🔒 PREMIUM COURSE COLLECTION",color=Color(0xFFE8B75A),fontWeight=FontWeight.Black,fontSize=10.sp,modifier=Modifier.weight(1f));Text("Tap to explore",color=muted,fontSize=10.sp)};Row(horizontalArrangement=Arrangement.spacedBy(7.dp)){listOf("Advanced Yoga • 30 days","Martial Arts Mastery","Strength & Conditioning").forEach{title->Card(Modifier.weight(1f).height(40.dp),colors=CardDefaults.cardColors(containerColor=surface)){Box(Modifier.fillMaxSize().blur(2.dp).padding(4.dp),contentAlignment=Alignment.Center){Text(title,color=ink,fontWeight=FontWeight.Bold,fontSize=9.sp,maxLines=2)}}}}}}
@@ -350,8 +338,7 @@ private fun courseSteps(name:String):List<String> = when(name){
  val posts=originalPosts+randomPosts
  LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
  item{Heading("The noticeboard","Five pinned community stories + up to 20 rotating posts.",ink,muted)}
- item{Panel(surface){Column(Modifier.padding(14.dp)){Text("🗣️ Community feed",color=ink,fontWeight=FontWeight.Bold);Text("A new community post appears every 2 minutes 30 seconds while the app is open. Older posts are removed automatically; the five original stories stay pinned.",color=muted,fontSize=12.sp);Text("Pinned: 5   •   Recent posts: "+randomPosts.size+" / 20",color=Color(0xFF8BAF52),fontWeight=FontWeight.Bold,fontSize=11.sp)}}}
- items(posts,key={it.id}){p->Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(p.author,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));if(p.pinned)Text("📌 PINNED",color=Color(0xFFE2A84D),fontSize=10.sp,fontWeight=FontWeight.Bold);else Text(p.tag,color=muted,fontSize=10.sp)};Text(p.message,color=ink,fontSize=13.sp);Row(verticalAlignment=Alignment.CenterVertically){Text("♥ "+(p.likes+(if(p.id in likes)1 else 0)),color=Color(0xFFE58A9B),fontSize=12.sp);Spacer(Modifier.width(10.dp));TextButton(onClick={toggle(p.id)}){Text(if(p.id in likes)"Liked" else "Like")}}}}}
+  items(posts,key={it.id}){p->Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(p.author,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));if(p.pinned)Text("📌 PINNED",color=Color(0xFFE2A84D),fontSize=10.sp,fontWeight=FontWeight.Bold);else Text(p.tag,color=muted,fontSize=10.sp)};Text(p.message,color=ink,fontSize=13.sp);Row(verticalAlignment=Alignment.CenterVertically){Text("♥ "+(p.likes+(if(p.id in likes)1 else 0)),color=Color(0xFFE58A9B),fontSize=12.sp);Spacer(Modifier.width(10.dp));TextButton(onClick={toggle(p.id)}){Text(if(p.id in likes)"Liked" else "Like")}}}}}
  }
 }
 @Composable private fun OnboardingScreen(step:Int,setStep:(Int)->Unit,name:String,setName:(String)->Unit,dob:String,setDob:(String)->Unit,height:String,setHeight:(String)->Unit,weight:String,setWeight:(String)->Unit,level:String,setLevel:(String)->Unit,hobbies:String,setHobbies:(String)->Unit,email:String,setEmail:(String)->Unit,prefs:SharedPreferences,finish:()->Unit,ink:Color,muted:Color,surface:Color){
