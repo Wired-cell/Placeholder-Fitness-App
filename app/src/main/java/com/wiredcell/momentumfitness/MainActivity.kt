@@ -17,6 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import coil.request.ImageRequest
+import coil.request.CachePolicy
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import kotlin.random.Random
@@ -164,9 +167,6 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Triple("Gym Ball with Pump","₹579",579),
  Triple("Yoga Wheel","₹730",730),
  Triple("Massage Ball Set","₹399",399),
- Triple("Advanced Yoga Video Course","₹499",499),
- Triple("Strength Training Video Course","₹599",599),
- Triple("Martial Arts Video Course","₹699",699),
  Triple("30-Day Asana Mastery","₹899",899),
  Triple("12-Week Strength Foundations","₹1,299",1299),
  Triple("Mobility & Recovery Deep Dive","₹699",699),
@@ -301,7 +301,7 @@ private val asanaInstructions=listOf(
  Panel(surface){Column(Modifier.padding(18.dp)){Text("Hydration reminder",color=ink,fontWeight=FontWeight.Bold);Text("Drink regularly and use thirst and your own circumstances as a guide. Hydration needs vary.",color=muted,fontSize=13.sp)}}
  }
 }
-private fun parseDobMillis(value:String):Long? = try { val f=SimpleDateFormat("dd/MM/yyyy",Locale.getDefault()); f.isLenient=false; f.parse(value)?.time } catch(_:Exception){null}
+private fun parseDobMillis(value:String):Long? = try { val f=SimpleDateFormat("dd/MM/yyyy",Locale.getDefault()); f.timeZone=TimeZone.getTimeZone("UTC"); f.isLenient=false; f.parse(value)?.time } catch(_:Exception){null}
 private fun formatDobMillis(value:Long):String { val c=Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.timeInMillis=value; return "%02d/%02d/%04d".format(c.get(Calendar.DAY_OF_MONTH),c.get(Calendar.MONTH)+1,c.get(Calendar.YEAR)) }
 private fun productImage(name:String):String = when {
  name.contains("mat",true)->"https://www.gaiam.com/cdn/shop/products/05-64061_6MM-GAIAM-ESSENTIALS-YOGA-MAT-TEAL_C_600x.jpg?v=1668557105"
@@ -339,14 +339,22 @@ private fun courseSteps(name:String):List<String> = when(name){
 
 @Composable private fun Shop(products:List<Triple<String,String,Int>>,cart:Set<String>,toggle:(String)->Unit,ink:Color,muted:Color,surface:Color,checkout:()->Unit){
  val context=LocalContext.current
- LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Heading("The gear corner","Training equipment, accessories and video courses",ink,muted)}
- item{Panel(surface){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Text("🛒  "+cart.size+" items in cart",color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Button(onClick=checkout,enabled=cart.isNotEmpty()){Text("Checkout")}}}}
- items(products){p->Panel(surface){Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){AsyncImage(model=productImage(p.first),contentDescription=p.first,modifier=Modifier.size(88.dp).background(Color.White,RoundedCornerShape(12.dp)),contentScale=ContentScale.Crop);Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){Text(p.first,color=ink,fontWeight=FontWeight.Bold,fontSize=13.sp);Text(p.second,color=ink,fontWeight=FontWeight.Bold);Text("Listed retailer price • ₹"+p.third,color=muted,fontSize=10.sp);TextButton(onClick={context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(productUrl(p.first))))},contentPadding=PaddingValues(0.dp)){Text("View retailer listing")}};Button(onClick={toggle(p.first)}){Text(if(p.first in cart)"Remove" else "Add")}}}}
- item{Text("Retailer listings open in your browser. Prices and availability can change.",color=muted,fontSize=11.sp)}
+ val subtotal=products.filter{it.first in cart}.sumOf{it.third}
+ LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Heading("The gear corner","Training equipment and course collections",ink,muted)}
+ item{Panel(surface){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(7.dp)){Text("🛒  "+cart.size+" items in cart",color=ink,fontWeight=FontWeight.Bold);Row(verticalAlignment=Alignment.CenterVertically){Text("Subtotal",color=muted,modifier=Modifier.weight(1f));Text("₹"+subtotal,color=ink,fontWeight=FontWeight.ExtraBold)};Button(onClick=checkout,enabled=cart.isNotEmpty(),modifier=Modifier.fillMaxWidth()){Text("View cart • Buy")}}}}
+ items(products){p->Panel(surface){Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){AsyncImage(model=ImageRequest.Builder(context).data(productImage(p.first)).size(240).precision(coil.size.Precision.INEXACT).memoryCacheKey("shop-"+p.first).diskCacheKey("shop-"+p.first).memoryCachePolicy(CachePolicy.ENABLED).diskCachePolicy(CachePolicy.ENABLED).networkCachePolicy(CachePolicy.ENABLED).crossfade(false).build(),contentDescription=p.first,placeholder=androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_gallery),error=androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_report_image),modifier=Modifier.size(88.dp).background(Color.White,RoundedCornerShape(12.dp)),contentScale=ContentScale.Crop);Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){Text(p.first,color=ink,fontWeight=FontWeight.Bold,fontSize=13.sp);Text(p.second,color=ink,fontWeight=FontWeight.Bold);Text("Listed retailer price • ₹"+p.third,color=muted,fontSize=10.sp);TextButton(onClick={context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(productUrl(p.first))))},contentPadding=PaddingValues(0.dp)){Text("View retailer listing")}};Button(onClick={toggle(p.first)}){Text(if(p.first in cart)"Remove" else "Add")}}}}
+ item{Text("Images are cached on this device after loading. Retailer listings open in your browser.",color=muted,fontSize=11.sp)}
  }
 }
 @Composable private fun Checkout(items:List<Pair<String,Int>>,ink:Color,muted:Color,surface:Color,close:()->Unit){
- Column(Modifier.fillMaxSize().background(Color(0xFF090A0E).copy(.96f)).padding(22.dp),verticalArrangement=Arrangement.Center){Panel(surface){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Text("🔒 Checkout",color=ink,fontSize=23.sp,fontWeight=FontWeight.ExtraBold);Text("Your selected items",color=muted,fontSize=13.sp);if(items.isEmpty())Text("Premium course access",color=ink);items.forEach{r->Row{Text(r.first,color=ink,modifier=Modifier.weight(1f));Text("₹"+r.second,color=ink,fontWeight=FontWeight.Bold)}};HorizontalDivider();Row{Text("Total",color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("₹"+items.sumOf{it.second},color=ink,fontWeight=FontWeight.ExtraBold)};Text("Sorry, user. You are too broke to pay. 🥲",color=Color(0xFFE5A64C),fontWeight=FontWeight.Bold,fontSize=16.sp);Text("Payment is not available for this order.",color=muted,fontSize=12.sp);Button(onClick=close,modifier=Modifier.fillMaxWidth()){Text("Accept my broke status")};TextButton(onClick=close,modifier=Modifier.align(Alignment.CenterHorizontally)){Text("Go back")}}}}
+ var showBroke by remember{mutableStateOf(false)}
+ val subtotal=items.sumOf{it.second}
+ Column(Modifier.fillMaxSize().background(Color(0xFF090A0E).copy(.96f)).padding(22.dp),verticalArrangement=Arrangement.Center){Panel(surface){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+ Text(if(showBroke)"Payment status" else "🛒 Your cart",color=ink,fontSize=23.sp,fontWeight=FontWeight.ExtraBold)
+ if(!showBroke){Text("Review your selected items",color=muted,fontSize=13.sp);if(items.isEmpty())Text("Your cart is empty.",color=ink);items.forEach{r->Row{Text(r.first,color=ink,modifier=Modifier.weight(1f));Text("₹"+r.second,color=ink,fontWeight=FontWeight.Bold)}};HorizontalDivider();Row{Text("Subtotal",color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("₹"+subtotal,color=ink,fontWeight=FontWeight.ExtraBold)};Text("Taxes and delivery are not included.",color=muted,fontSize=11.sp);Button(onClick={showBroke=true},enabled=items.isNotEmpty(),modifier=Modifier.fillMaxWidth()){Text("Buy • ₹"+subtotal)}}
+ else{Text("Sorry, user. You are too broke to pay. 🥲",color=Color(0xFFE5A64C),fontWeight=FontWeight.Bold,fontSize=18.sp);Text("Your items are still in the cart. No payment has been taken.",color=muted,fontSize=12.sp)}
+ Button(onClick=close,modifier=Modifier.fillMaxWidth()){Text(if(showBroke)"Back to shopping" else "Continue shopping")}
+ }}}
 }
 @Composable private fun Community(randomPosts:List<CommunityPost>,likes:Set<Int>,toggle:(Int)->Unit,ink:Color,muted:Color,surface:Color){
  val posts=originalPosts+randomPosts
