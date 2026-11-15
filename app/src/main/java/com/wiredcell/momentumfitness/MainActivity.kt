@@ -167,8 +167,8 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Triple("Nutrition & Meal Planning","₹599",599)
  )
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=lime,background=bg,surface=surface,onBackground=ink,onSurface=ink) else lightColorScheme(primary=Color(0xFF426B18),background=bg,surface=surface,onBackground=ink,onSurface=ink)) {
- Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(premiumOpen) "Premium courses" else if(selectedLesson!=null) selectedLesson!!.name else "MOMENTUM",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
- bottomBar={if(!settings && selectedLesson==null && !gateway && !premiumOpen) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
+ Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(premiumOpen) "Premium courses" else if(selectedLesson!=null) selectedLesson!!.name else "MOMENTUM",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={if(profileComplete)IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")} },colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
+ bottomBar={if(profileComplete && !settings && selectedLesson==null && !gateway && !premiumOpen) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
  Box(Modifier.fillMaxSize().padding(pad)) {
  when {
  premiumOpen -> PremiumPaywall(ink,muted,surface,cart,{n->cart=if(n in cart)cart-n else cart+n},{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true},{premiumOpen=false})
@@ -185,7 +185,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Tab.Connect -> Community(randomPosts,likes,{i->likes=if(i in likes)likes-i else likes+i},ink,muted,surface)
  }
  }
- PremiumShelf(Modifier.align(Alignment.BottomCenter),surface,ink,muted,{premiumOpen=true})
+ if(profileComplete && !settings && !gateway && selectedLesson==null && !premiumOpen) PremiumShelf(Modifier.align(Alignment.BottomCenter),surface,ink,muted,{premiumOpen=true})
  }
  }
  }
