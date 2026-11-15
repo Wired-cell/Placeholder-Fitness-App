@@ -19,7 +19,7 @@ GitHub Actions builds a debug APK on pushes to main, pull requests and manual di
 
 1. Open **Actions** and select **Build Android APK**.
 2. Run the workflow or push a commit to main.
-3. Download the `momentum-fitness-debug-apk` artifact from the completed run.
+3. Download the debug APK artifact from the completed run.
 
 The APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
 
