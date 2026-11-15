@@ -186,7 +186,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  !profileComplete -> OnboardingScreen(onboardingStep,{onboardingStep=it},profileName,{profileName=it},profileDob,{profileDob=it},profileHeight,{profileHeight=it},profileWeight,{profileWeight=it},profileLevel,{profileLevel=it},profileHobbies,{profileHobbies=it},prefs,{profileComplete=true},ink,muted,surface)
  else -> when(tab) {
  Tab.Home -> HomeScreen(ink,muted,surface,lime,unlocked,streakDays,workoutsWeek,expandedFoods.size,profileHeight,profileWeight,{tab=it})
- Tab.Train -> TrainingScreen(lessons,products,ink,muted,surface,lime,cart,{n->cart=if(n in cart)cart-n else cart+n},{l->selectedLesson=l})
+ Tab.Train -> TrainingScreen(lessons,products,ink,muted,surface,lime,unlocked,cart,{n->cart=if(n in cart)cart-n else cart+n},{l->selectedLesson=l})
  Tab.Food -> FoodScreen(expandedFoods,allergies,{allergies=it},ink,muted,surface)
  Tab.Track -> Tracker(water,{water=(water+1).coerceAtMost(20)},{water=(water-1).coerceAtLeast(0)},mealCount,{mealCount++},foodLogs,{name,kcal->foodLogs=foodLogs+FoodLog(name,kcal);mealCount++},foodName,{foodName=it},foodKcal,{foodKcal=it},streakDays,workoutsWeek,workoutMinutes,{streakDays++;workoutsWeek++;workoutMinutes+=30},ink,muted,surface)
  Tab.Shop -> Shop(products,cart,{cart=if(it in cart)cart-it else cart+it},ink,muted,surface,{cartOpen=true})
@@ -253,6 +253,7 @@ private val asanaInstructions=listOf(
  val vids=listOf("20 Min Yoga Flow • Charlie Follows" to "https://www.youtube.com/watch?v=fxT-5bmzWbk","20 Min Low Impact Cardio • Heather Robertson" to "https://www.youtube.com/watch?v=cA11MYXhBfI","Beginner Bodyweight Workout • Sunny Health" to "https://www.youtube.com/watch?v=WrXeb6EZrK0","10 Min Sun Salutation • Vedam" to "https://www.youtube.com/watch?v=hJolNd62Qhs","Muay Thai 101 • Sean Fagan" to "https://www.youtube.com/watch?v=640rsP_0WgY")
  Column(verticalArrangement=Arrangement.spacedBy(7.dp)){Text("FREE YOUTUBE VIDEO GUIDES",color=ink,fontWeight=FontWeight.Bold,fontSize=16.sp);Text("Free videos open on YouTube.",color=muted,fontSize=11.sp);vids.forEach{(title,url)->Card(colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(12.dp)){Row(Modifier.fillMaxWidth().clickable{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url)))}.padding(11.dp),verticalAlignment=Alignment.CenterVertically){Text("▶",color=Color(0xFFE45C54),fontSize=21.sp);Spacer(Modifier.width(9.dp));Column(Modifier.weight(1f)){Text(title,color=ink,fontWeight=FontWeight.SemiBold,fontSize=13.sp);Text("FREE • YouTube",color=Color(0xFF8BAF52),fontSize=10.sp,fontWeight=FontWeight.Bold)};Icon(Icons.Default.OpenInNew,null,tint=muted)}}}
 }
+}
 @Composable private fun CartScreen(products:List<Triple<String,String,Int>>,cart:Set<String>,toggle:(String)->Unit,promo:String,setPromo:(String)->Unit,message:String,redeem:(String)->Unit,checkout:()->Unit,ink:Color,muted:Color,surface:Color){
  val items=products.filter{it.first in cart};val subtotal=items.sumOf{it.third}
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
@@ -286,7 +287,7 @@ private val asanaInstructions=listOf(
  }
 }
 @Composable private fun MiniStat(label:String,value:String,caption:String,surface:Color,ink:Color,muted:Color,modifier:Modifier){Card(modifier,colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(11.dp)){Text(label,color=muted,fontSize=10.sp,fontWeight=FontWeight.Bold);Text(value,color=ink,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(caption,color=muted,fontSize=10.sp)}}}
-@Composable private fun TrainingScreen(lessons:List<Lesson>,products:List<Triple<String,String,Int>>,ink:Color,muted:Color,surface:Color,lime:Color,cart:Set<String>,toggleCart:(String)->Unit,open:(Lesson)->Unit){
+@Composable private fun TrainingScreen(lessons:List<Lesson>,products:List<Triple<String,String,Int>>,ink:Color,muted:Color,surface:Color,lime:Color,unlocked:Boolean,cart:Set<String>,toggleCart:(String)->Unit,open:(Lesson)->Unit){
  var category by remember{mutableStateOf("Martial arts")};val selected=when(category){"Martial arts"->lessons.take(4);"Yoga"->lessons.drop(4).take(4);else->lessons.drop(8)}
  val paidCourses=products.filter{it.first in setOf("30-Day Asana Mastery","12-Week Strength Foundations","Mobility & Recovery Deep Dive","Handstand Pathway","Nutrition & Meal Planning")}
  LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){
