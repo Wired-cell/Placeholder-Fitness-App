@@ -58,7 +58,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  var randomPosts by remember { mutableStateOf(emptyList<CommunityPost>()) }; var postCounter by remember { mutableIntStateOf(100) }
  LaunchedEffect(Unit) { while(true) { delay(150_000L); randomPosts=(listOf(makeRandomPost(postCounter))+randomPosts).take(20); postCounter++ } }
  var gateway by remember { mutableStateOf(false) }; var gatewayItems by remember { mutableStateOf(listOf<Pair<String,Int>>()) }
- var promo by remember { mutableStateOf("") }; var promoMsg by remember { mutableStateOf("") }; var water by remember { mutableIntStateOf(3) }; var mealCount by remember { mutableIntStateOf(2) }
+ var promo by remember { mutableStateOf("") }; var promoMsg by remember { mutableStateOf("") }; var water by remember { mutableIntStateOf(0) }; var mealCount by remember { mutableIntStateOf(0) }
  var allergies by remember { mutableStateOf(setOf<String>()) }; var cart by remember { mutableStateOf(setOf<String>()) }; var likes by remember { mutableStateOf(setOf<Int>()) }
  val bg=if(!dark) Color(0xFFF4F5F7) else if(darcula) Color(0xFF211F26) else Color(0xFF101116)
  val surface=if(!dark) Color.White else if(darcula) Color(0xFF302D36) else Color(0xFF1C1E27)
