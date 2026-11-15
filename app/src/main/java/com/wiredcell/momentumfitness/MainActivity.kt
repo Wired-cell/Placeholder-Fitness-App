@@ -363,6 +363,7 @@ private fun courseSteps(name:String):List<String> = when(name){
   items(posts,key={it.id}){p->Panel(surface){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(p.author,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));if(p.pinned)Text("📌 PINNED",color=Color(0xFFE2A84D),fontSize=10.sp,fontWeight=FontWeight.Bold);else Text(p.tag,color=muted,fontSize=10.sp)};Text(p.message,color=ink,fontSize=13.sp);Row(verticalAlignment=Alignment.CenterVertically){Text("♥ "+(p.likes+(if(p.id in likes)1 else 0)),color=Color(0xFFE58A9B),fontSize=12.sp);Spacer(Modifier.width(10.dp));TextButton(onClick={toggle(p.id)}){Text(if(p.id in likes)"Liked" else "Like")}}}}}
  }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable private fun OnboardingScreen(step:Int,setStep:(Int)->Unit,name:String,setName:(String)->Unit,dob:String,setDob:(String)->Unit,height:String,setHeight:(String)->Unit,weight:String,setWeight:(String)->Unit,level:String,setLevel:(String)->Unit,hobbies:String,setHobbies:(String)->Unit,prefs:SharedPreferences,finish:()->Unit,ink:Color,muted:Color,surface:Color){
  var showDobPicker by remember{mutableStateOf(false)}
  val dobPickerState= rememberDatePickerState(initialSelectedDateMillis=parseDobMillis(dob),yearRange=1900..Calendar.getInstance().get(Calendar.YEAR))
