@@ -82,7 +82,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  var unlocked by remember { mutableStateOf(false) }; var settings by remember { mutableStateOf(false) }; var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
  var randomPosts by remember { mutableStateOf(emptyList<CommunityPost>()) }; var postCounter by remember { mutableIntStateOf(100) }
  LaunchedEffect(Unit) { while(true) { delay(150_000L); randomPosts=(listOf(makeRandomPost(postCounter))+randomPosts).take(20); postCounter++ } }
- var gateway by remember { mutableStateOf(false) }; var gatewayItems by remember { mutableStateOf(listOf<Pair<String,Int>>()) }
+ var cartOpen by remember { mutableStateOf(false) }; var gateway by remember { mutableStateOf(false) }; var gatewayItems by remember { mutableStateOf(listOf<Pair<String,Int>>()) }
  var promo by remember { mutableStateOf("") }; var promoMsg by remember { mutableStateOf("") }; var water by remember { mutableIntStateOf(0) }; var mealCount by remember { mutableIntStateOf(0) }
  var allergies by remember { mutableStateOf(setOf<String>()) }; var cart by remember { mutableStateOf(setOf<String>()) }; var likes by remember { mutableStateOf(setOf<Int>()) }
  val bg=if(!dark) Color(0xFFF4F5F7) else if(darcula) Color(0xFF000000) else Color(0xFF101116)
@@ -174,25 +174,26 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Triple("Nutrition & Meal Planning","₹599",599)
  )
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=lime,background=bg,surface=surface,onBackground=ink,onSurface=ink) else lightColorScheme(primary=Color(0xFF426B18),background=bg,surface=surface,onBackground=ink,onSurface=ink)) {
- Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(premiumOpen) "Premium courses" else if(selectedLesson!=null) selectedLesson!!.name else "MOMENTUM",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={if(profileComplete)IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")} },colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
- bottomBar={if(profileComplete && !settings && selectedLesson==null && !gateway && !premiumOpen) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
+ Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(premiumOpen) "Premium courses" else if(selectedLesson!=null) selectedLesson!!.name else "MOMENTUM",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={if(profileComplete){IconButton(onClick={cartOpen=true}){BadgedBox(badge={if(cart.isNotEmpty())Badge{Text(cart.size.toString())}}){Icon(Icons.Default.ShoppingCart,"Cart")}};IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}} },colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
+ bottomBar={if(profileComplete && !settings && !cartOpen && selectedLesson==null && !gateway && !premiumOpen) NavigationBar(containerColor=surface){Tab.entries.forEach{t->NavigationBarItem(selected=tab==t,onClick={tab=t},icon={Icon(t.icon,t.title)},label={Text(t.title,fontSize=10.sp)})}}}) { pad ->
  Box(Modifier.fillMaxSize().padding(pad)) {
  when {
+ cartOpen -> CartScreen(products,cart,{cart=if(it in cart)cart-it else cart+it},promo,{promo=it},promoMsg,{code->if(code.trim()=="Notiboi Piyush"){unlocked=true;promoMsg="🎉 All paid courses unlocked! Premium courses are now available on this device."}else promoMsg="Code not recognised. Try again."},{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true},ink,muted,surface)
  premiumOpen -> PremiumPaywall(ink,muted,surface,cart,{n->cart=if(n in cart)cart-n else cart+n},{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true},{premiumOpen=false})
  selectedLesson != null -> CourseDetail(selectedLesson!!,ink,muted,surface,{selectedLesson=null})
  settings -> SettingsScreen(dark,darcula,profileName,profileDob,profileHeight,profileWeight,profileLevel,profileHobbies,{dark=it;if(!it)darcula=false},{darcula=it;dark=true},ink,muted,surface)
- gateway -> Checkout(gatewayItems,ink,muted,surface,{gateway=false})
+ gateway -> Checkout(gatewayItems,ink,muted,surface,{gateway=false;cartOpen=true})
  !profileComplete -> OnboardingScreen(onboardingStep,{onboardingStep=it},profileName,{profileName=it},profileDob,{profileDob=it},profileHeight,{profileHeight=it},profileWeight,{profileWeight=it},profileLevel,{profileLevel=it},profileHobbies,{profileHobbies=it},prefs,{profileComplete=true},ink,muted,surface)
  else -> when(tab) {
  Tab.Home -> HomeScreen(ink,muted,surface,lime,unlocked,streakDays,workoutsWeek,expandedFoods.size,profileHeight,profileWeight,{tab=it})
  Tab.Train -> TrainingScreen(lessons,products,ink,muted,surface,lime,cart,{n->cart=if(n in cart)cart-n else cart+n},{l->selectedLesson=l})
  Tab.Food -> FoodScreen(expandedFoods,allergies,{allergies=it},ink,muted,surface)
  Tab.Track -> Tracker(water,{water=(water+1).coerceAtMost(20)},{water=(water-1).coerceAtLeast(0)},mealCount,{mealCount++},foodLogs,{name,kcal->foodLogs=foodLogs+FoodLog(name,kcal);mealCount++},foodName,{foodName=it},foodKcal,{foodKcal=it},streakDays,workoutsWeek,workoutMinutes,{streakDays++;workoutsWeek++;workoutMinutes+=30},ink,muted,surface)
- Tab.Shop -> Shop(products,cart,{cart=if(it in cart)cart-it else cart+it},ink,muted,surface,{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true})
+ Tab.Shop -> Shop(products,cart,{cart=if(it in cart)cart-it else cart+it},ink,muted,surface,{cartOpen=true})
  Tab.Connect -> Community(randomPosts,likes,{i->likes=if(i in likes)likes-i else likes+i},ink,muted,surface)
  }
  }
- if(profileComplete && !settings && !gateway && selectedLesson==null && !premiumOpen) PremiumShelf(Modifier.align(Alignment.BottomCenter),surface,ink,muted,{premiumOpen=true})
+ if(profileComplete && !settings && !cartOpen && !gateway && selectedLesson==null && !premiumOpen) PremiumShelf(Modifier.align(Alignment.BottomCenter),surface,ink,muted,{premiumOpen=true})
  }
  }
  }
@@ -247,6 +248,21 @@ private val asanaInstructions=listOf(
  shown.forEach{pose->val i=asanaNames.indexOf(pose);Card(Modifier.fillMaxWidth().clickable{expanded=if(expanded==pose)"" else pose},colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(12.dp)){Column(Modifier.padding(11.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(pose,color=ink,fontWeight=FontWeight.SemiBold,fontSize=13.sp,modifier=Modifier.weight(1f));Icon(if(expanded==pose)Icons.Default.ExpandLess else Icons.Default.ExpandMore,null,tint=muted)};if(expanded==pose){Text("How to practise",color=ink,fontWeight=FontWeight.Bold,fontSize=12.sp);Text(asanaInstructions[i],color=muted,fontSize=12.sp);Text("Breathe normally. Use props or a smaller range, and stop if you feel pain, numbness or dizziness.",color=muted,fontSize=11.sp)}}}}
  }
 }
+@Composable private fun YouTubeLibrary(ink:Color,muted:Color,surface:Color){
+ val context=LocalContext.current
+ val vids=listOf("20 Min Yoga Flow • Charlie Follows" to "https://www.youtube.com/watch?v=fxT-5bmzWbk","20 Min Low Impact Cardio • Heather Robertson" to "https://www.youtube.com/watch?v=cA11MYXhBfI","Beginner Bodyweight Workout • Sunny Health" to "https://www.youtube.com/watch?v=WrXeb6EZrK0","10 Min Sun Salutation • Vedam" to "https://www.youtube.com/watch?v=hJolNd62Qhs","Muay Thai 101 • Sean Fagan" to "https://www.youtube.com/watch?v=640rsP_0WgY")
+ Column(verticalArrangement=Arrangement.spacedBy(7.dp)){Text("FREE YOUTUBE VIDEO GUIDES",color=ink,fontWeight=FontWeight.Bold,fontSize=16.sp);Text("Free videos open on YouTube.",color=muted,fontSize=11.sp);vids.forEach{(title,url)->Card(colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(12.dp)){Row(Modifier.fillMaxWidth().clickable{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url)))}.padding(11.dp),verticalAlignment=Alignment.CenterVertically){Text("▶",color=Color(0xFFE45C54),fontSize=21.sp);Spacer(Modifier.width(9.dp));Column(Modifier.weight(1f)){Text(title,color=ink,fontWeight=FontWeight.SemiBold,fontSize=13.sp);Text("FREE • YouTube",color=Color(0xFF8BAF52),fontSize=10.sp,fontWeight=FontWeight.Bold)};Icon(Icons.Default.OpenInNew,null,tint=muted)}}}
+}
+@Composable private fun CartScreen(products:List<Triple<String,String,Int>>,cart:Set<String>,toggle:(String)->Unit,promo:String,setPromo:(String)->Unit,message:String,redeem:(String)->Unit,checkout:()->Unit,ink:Color,muted:Color,surface:Color){
+ val items=products.filter{it.first in cart};val subtotal=items.sumOf{it.third}
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+ Row(verticalAlignment=Alignment.CenterVertically){Text("Your cart",color=ink,fontSize=24.sp,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text(items.size.toString()+" items",color=muted)}
+ if(items.isEmpty())Panel(surface){Text("Your cart is empty. Add gear or a paid course to see it here.",color=muted,modifier=Modifier.padding(16.dp))}
+ items.forEach{p->Panel(surface){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(p.first,color=ink,fontWeight=FontWeight.Bold);Text("₹"+p.third,color=muted,fontSize=13.sp)};TextButton(onClick={toggle(p.first)}){Text("Remove")}}}}
+ Panel(surface){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text("Promo code",color=ink,fontWeight=FontWeight.Bold);OutlinedTextField(value=promo,onValueChange=setPromo,label={Text("Enter promo code")},modifier=Modifier.fillMaxWidth(),singleLine=true);Button(onClick={redeem(promo)},modifier=Modifier.fillMaxWidth()){Text("Redeem code")};if(message.isNotBlank())Text(message,color=if(message.startsWith("🎉"))Color(0xFF82B95A) else Color(0xFFE5A64C),fontSize=12.sp)}}
+ Panel(surface){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row{Text("Subtotal",color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("₹"+subtotal,color=ink,fontWeight=FontWeight.ExtraBold)};Button(onClick=checkout,enabled=items.isNotEmpty(),modifier=Modifier.fillMaxWidth()){Text("Go to checkout")}}}
+ }
+}
 @Composable private fun PremiumShelf(modifier:Modifier,surface:Color,ink:Color,muted:Color,onClick:()->Unit){Column(modifier.fillMaxWidth().background(Color(0xE9101116),RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).clickable(onClick=onClick).padding(10.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text("🔒 PREMIUM COURSE COLLECTION",color=Color(0xFFE8B75A),fontWeight=FontWeight.Black,fontSize=10.sp,modifier=Modifier.weight(1f));Text("Tap to explore",color=muted,fontSize=10.sp)};Row(horizontalArrangement=Arrangement.spacedBy(7.dp)){listOf("Advanced Yoga • 30 days","Martial Arts Mastery","Strength & Conditioning").forEach{title->Card(Modifier.weight(1f).height(40.dp),colors=CardDefaults.cardColors(containerColor=surface)){Box(Modifier.fillMaxSize().blur(2.dp).padding(4.dp),contentAlignment=Alignment.Center){Text(title,color=ink,fontWeight=FontWeight.Bold,fontSize=9.sp,maxLines=2)}}}}}}
 @Composable private fun PremiumPaywall(ink:Color,muted:Color,surface:Color,cart:Set<String>,toggle:(String)->Unit,checkout:()->Unit,back:()->Unit){
  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(11.dp)){TextButton(onClick=back){Icon(Icons.Default.ArrowBack,null);Text(" Back")};Heading("Premium course vault","Advanced training programmes",ink,muted)
@@ -273,12 +289,13 @@ private val asanaInstructions=listOf(
  var category by remember{mutableStateOf("Martial arts")};val selected=when(category){"Martial arts"->lessons.take(4);"Yoga"->lessons.drop(4).take(4);else->lessons.drop(8)}
  val paidCourses=products.filter{it.first in setOf("30-Day Asana Mastery","12-Week Strength Foundations","Mobility & Recovery Deep Dive","Handstand Pathway","Nutrition & Meal Planning")}
  LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(13.dp)){
- item{Heading("Train your way","Free guided programmes, followed by paid courses",ink,muted)}
- item{Text("FREE COURSES",color=lime,fontWeight=FontWeight.Black,fontSize=16.sp)}
- item{Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Martial arts","Yoga","Calisthenics").forEach{FilterChip(selected=category==it,onClick={category=it},label={Text(it)})}}}
- items(selected){l->Card(Modifier.fillMaxWidth().clickable{open(l)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface)){Column{Box(Modifier.fillMaxWidth().height(118.dp).background(Brush.linearGradient(listOf(Color(0xFF4D6651),Color(0xFF242E40)))).padding(16.dp),contentAlignment=Alignment.Center){Text(if(category=="Yoga")"🧘" else if(category=="Martial arts")"🥊" else "💪",fontSize=42.sp)};Column(Modifier.padding(14.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(l.name,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("FREE",color=lime,fontWeight=FontWeight.Bold,fontSize=11.sp)};Text(l.desc,color=muted,fontSize=12.sp);Text("Open written instructions",color=muted,fontSize=11.sp)}}}}
+ item{Heading("Train your way","Free YouTube guides, paid collections and detailed written programmes",ink,muted)}
+ item{YouTubeLibrary(ink,muted,surface)}
  item{Text("PAID COURSES",color=Color(0xFFE5B45B),fontWeight=FontWeight.Black,fontSize=16.sp)}
  items(paidCourses){p->Panel(surface){Row(Modifier.padding(13.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(p.first,color=ink,fontWeight=FontWeight.Bold);Text(p.second+" • Full course access",color=muted,fontSize=11.sp)};Button(onClick={toggleCart(p.first)}){Text(if(p.first in cart)"Remove" else "Add to cart")}}}}
+ item{Text("STEP-BY-STEP FREE PROGRAMMES",color=lime,fontWeight=FontWeight.Black,fontSize=16.sp)}
+ item{Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Martial arts","Yoga","Calisthenics").forEach{FilterChip(selected=category==it,onClick={category=it},label={Text(it)})}}}
+ items(selected){l->Card(Modifier.fillMaxWidth().clickable{open(l)},shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=surface)){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(l.name,color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text("FREE",color=lime,fontWeight=FontWeight.Bold,fontSize=11.sp)};Text(l.desc,color=muted,fontSize=12.sp);Text("Open detailed step-by-step instructions",color=muted,fontSize=11.sp)}}}}
  item{AsanaLibrary(ink,muted,surface)}
  }
 }
