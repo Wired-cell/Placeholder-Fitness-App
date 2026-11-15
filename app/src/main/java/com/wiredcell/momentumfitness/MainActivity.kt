@@ -283,11 +283,31 @@ private val asanaInstructions=listOf(
  Panel(surface){Column(Modifier.padding(18.dp)){Text("Hydration reminder",color=ink,fontWeight=FontWeight.Bold);Text("Drink regularly and use thirst and your own circumstances as a guide. Hydration needs vary.",color=muted,fontSize=13.sp)}}
  }
 }
+private fun productImage(name:String):String = when {
+ name.contains("mat",true)->"https://www.gaiam.com/cdn/shop/products/05-64061_6MM-GAIAM-ESSENTIALS-YOGA-MAT-TEAL_C_600x.jpg?v=1668557105"
+ name.contains("band",true)||name.contains("tube",true)->"https://mediahub.boohoo.com/m5031470265533_green_xl.jpeg"
+ name.contains("dumbbell",true)->"https://vitalgym.co/cdn/shop/products/vital-gym-hex-dumbbell-set-140kg-140kg-hex-dumbbell-set-rubber-dumbbells-for-home-gym-vital-gym-41423706128598_1000x.jpg?v=1742042486"
+ name.contains("rope",true)->"https://www.tradeinn.com/f/13893/138936719_2/sklz-pro-jump-rope.webp"
+ name.contains("roller",true)||name.contains("massage",true)->"https://uk.dfyne.com/cdn/shop/files/BlackRoller_f06f7af2-7c19-418f-9a76-c5b689523136.jpg?v=1742395595&width=1080"
+ name.contains("block",true)||name.contains("strap",true)->"https://absolute-snow-content.cdn.rlab.net/original/9e5790e2-db7d-4ea9-bae1-0feca5fdda4405-63680_PRINTED-YOGA-BLOCK-BLUE-SHADOW-POINT_C.jpg"
+ name.contains("pull",true)||name.contains("push",true)||name.contains("grip",true)->"https://cdn.sanity.io/images/e3j0flvu/production/16ae3aefc95573e10afb09447a8550148ab90f87-1536x1024.webp?auto=format&q=100&w=1536"
+ else->"https://www.soulflex.in/cdn/shop/files/67_4381264e-e6ec-4f0c-a97c-d3ad89eb46ee.png?v=1756986454"
+}
+private fun productUrl(name:String):String = when {
+ name.contains("mat",true)->"https://www.decathlon.in/p/8769263/yoga-mat-6mm-thick-183-x-61-cm-better-grip-with-carry-strap-green"
+ name.contains("band",true)||name.contains("tube",true)->"https://www.decathlon.in/shop/decathlon-Fitnessandwellness-Collection"
+ name.contains("dumbbell",true)->"https://www.zepto.com/cn/toys-sports/gym-yoga/cid/020d0d76-742f-4474-aad7-01313b65e3cb/scid/ad88206b-9835-4363-abfa-ff1ea5f15272"
+ name.contains("rope",true)->"https://www.decathlon.in/shop/decathlon-Fitnessandwellness-Collection"
+ name.contains("block",true)||name.contains("strap",true)->"https://www.decathlon.in/shop/decathlon-Fitnessandwellness-Collection"
+ name.contains("roller",true)||name.contains("massage",true)->"https://www.decathlon.in/shop/decathlon-Fitnessandwellness-Collection"
+ else->"https://www.decathlon.in/shop/decathlon-Fitnessandwellness-Collection"
+}
 @Composable private fun Shop(products:List<Triple<String,String,Int>>,cart:Set<String>,toggle:(String)->Unit,ink:Color,muted:Color,surface:Color,checkout:()->Unit){
- LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Heading("The gear corner","Training equipment and accessories",ink,muted)}
+ val context=LocalContext.current
+ LazyColumn(contentPadding=PaddingValues(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){item{Heading("The gear corner","Training equipment, accessories and video courses",ink,muted)}
  item{Panel(surface){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Text("🛒  "+cart.size+" items in cart",color=ink,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Button(onClick=checkout,enabled=cart.isNotEmpty()){Text("Checkout")}}}}
- items(products){p->Panel(surface){Row(Modifier.padding(13.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){Box(Modifier.size(66.dp).background(Brush.linearGradient(listOf(Color(0xFF546E50),Color(0xFF263448))),RoundedCornerShape(14.dp)),contentAlignment=Alignment.Center){Text("🏋️",fontSize=28.sp)};Column(Modifier.weight(1f)){Text(p.first,color=ink,fontWeight=FontWeight.Bold);Text(p.second,color=ink,fontWeight=FontWeight.Bold);Text("₹"+p.third+" list • "+Random.nextInt(10,41).toString()+"% demo deal",color=muted,fontSize=11.sp)};Button(onClick={toggle(p.first)}){Text(if(p.first in cart)"Remove" else "Add")}}}}
- item{Text("Prices and availability may change at the retailer.",color=muted,fontSize=11.sp)}
+ items(products){p->Panel(surface){Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){AsyncImage(model=productImage(p.first),contentDescription=p.first,modifier=Modifier.size(88.dp).background(Color.White,RoundedCornerShape(12.dp)),contentScale=ContentScale.Crop);Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){Text(p.first,color=ink,fontWeight=FontWeight.Bold,fontSize=13.sp);Text(p.second,color=ink,fontWeight=FontWeight.Bold);Text("Listed retailer price • ₹"+p.third,color=muted,fontSize=10.sp);TextButton(onClick={context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(productUrl(p.first))))},contentPadding=PaddingValues(0.dp)){Text("View retailer listing")}};Button(onClick={toggle(p.first)}){Text(if(p.first in cart)"Remove" else "Add")}}}}
+ item{Text("Retailer listings open in your browser. Prices and availability can change.",color=muted,fontSize=11.sp)}
  }
 }
 @Composable private fun Checkout(items:List<Pair<String,Int>>,ink:Color,muted:Color,surface:Color,close:()->Unit){
