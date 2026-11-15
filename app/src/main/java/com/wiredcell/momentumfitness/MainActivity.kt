@@ -161,7 +161,54 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
 }
 
 private val asanaNames=listOf("Mountain Pose (Tadasana)","Raised Arms (Urdhva Hastasana)","Standing Forward Fold (Uttanasana)","Half Lift (Ardha Uttanasana)","Downward Dog (Adho Mukha Svanasana)","Plank (Phalakasana)","Four-Limbed Staff (Chaturanga)","Cobra (Bhujangasana)","Upward Dog (Urdhva Mukha Svanasana)","Child's Pose (Balasana)","Warrior I (Virabhadrasana I)","Warrior II (Virabhadrasana II)","Warrior III (Virabhadrasana III)","Extended Side Angle","Triangle (Trikonasana)","Reverse Warrior","Extended Hand-to-Big-Toe","Tree (Vrksasana)","Eagle (Garudasana)","Chair (Utkatasana)","Goddess (Utkata Konasana)","Garland (Malasana)","Low Lunge (Anjaneyasana)","Half Split (Ardha Hanumanasana)","Pigeon (Eka Pada Rajakapotasana)","Bridge (Setu Bandha)","Locust (Salabhasana)","Bow (Dhanurasana)","Camel (Ustrasana)","Seated Forward Fold (Paschimottanasana)","Bound Angle (Baddha Konasana)","Staff (Dandasana)","Seated Twist (Ardha Matsyendrasana)","Boat (Navasana)","Happy Baby (Ananda Balasana)","Supine Twist","Legs-Up-the-Wall (Viparita Karani)","Corpse (Savasana)","Dolphin (Ardha Pincha Mayurasana)","Supported Shoulder Bridge")
-@Composable private fun AsanaLibrary(ink:Color,muted:Color,surface:Color){var q by remember{mutableStateOf("")};val shown=asanaNames.filter{it.contains(q,true)};Column(verticalArrangement=Arrangement.spacedBy(7.dp)){Text("40-POSE ASANA LIBRARY",color=ink,fontWeight=FontWeight.Bold,fontSize=16.sp);OutlinedTextField(value=q,onValueChange={q=it},label={Text("Search poses")},modifier=Modifier.fillMaxWidth(),singleLine=true);shown.forEachIndexed{index,pose->Card(colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(12.dp)){Column(Modifier.padding(10.dp)){Text((index+1).toString()+". "+pose,color=ink,fontWeight=FontWeight.SemiBold,fontSize=13.sp);Text("Breathe steadily, use a wall or props for support, and stay within a comfortable pain-free range.",color=muted,fontSize=11.sp)}}}}}
+private val asanaInstructions=listOf(
+"Stand tall with feet hip-width, distribute weight evenly, engage thighs gently and lengthen through crown of head. Hold 5 breaths.",
+"Stand grounded, inhale and sweep arms overhead without flaring ribs; soften shoulders and gaze forward. Hold 3–5 breaths.",
+"Fold from hips with knees soft; let head relax and place hands on blocks or shins. Rise slowly.",
+"Hands on shins, lengthen spine forward and keep neck long; avoid rounding lower back.",
+"Hands shoulder-width, hips lift back and up; bend knees to lengthen spine, press floor away. Hold 5 breaths.",
+"Hands under shoulders, legs long; brace abdomen, keep hips level and press floor away. Modify with knees down.",
+"From plank, bend elbows close to ribs and lower only as far as shoulders stay controlled; knees down is a valid option.",
+"Lie prone, hands beside lower ribs; gently lift chest using back muscles, elbows bent, pelvis grounded. Avoid compressing low back.",
+"From prone, press hands and tops of feet, lift thighs and chest only if spine and wrists tolerate; otherwise use cobra.",
+"Kneel, bring big toes together and knees comfortable apart; sit hips toward heels and rest forehead on support.",
+"Step one foot forward, back heel grounded; bend front knee, lift arms only if shoulders comfortable and keep hips facing forward.",
+"Wide stance, front toes out; bend front knee tracking over toes, extend arms and gaze over front hand.",
+"From Warrior I, hinge forward and lift back leg; keep hips level and hands on blocks or wall for balance.",
+"From Warrior II, hinge over front leg, forearm to thigh or hand to block; extend top arm without collapsing chest.",
+"Stand wide, turn front foot out; reach forward then hinge, hand to shin/block and chest open sideways.",
+"From Warrior II, keep front knee bent and arc front arm overhead; side body lengthens without crunching lower back.",
+"Hold a wall for support, lift knee and gently extend foot forward; use strap only if comfortable, no forcing.",
+"Stand tall, place foot on calf or inner thigh (never knee), use wall support and keep pelvis level.",
+"Stand on one leg, cross other thigh and optionally wrap foot; cross arms and balance near a wall.",
+"Feet hip-width, sit hips back as if chair; keep knees tracking over toes and ribs stacked above pelvis.",
+"Wide stance, bend knees tracking toes and sit hips down; keep torso upright and hands at heart.",
+"Stand wide, turn toes out and lower hips only as far as knees remain comfortable; use a block under seat.",
+"Kneel with one foot forward, tuck pelvis gently and shift forward until front hip stretches; avoid arching back.",
+"From low lunge, shift hips back and straighten front leg with a soft knee; hinge forward from hips.",
+"From tabletop, bring one knee forward toward wrist and extend other leg back; support front hip with cushion and avoid knee pain.",
+"Lie on back, knees bent and feet parallel; press feet down and lift hips without turning knees outward.",
+"Lie prone, arms by sides; lift chest and legs a little using back muscles, keep neck neutral.",
+"Lie prone, bend knees and reach back only if shoulders allow; lift chest gently, avoid pulling feet forcefully.",
+"Kneel with knees hip-width, hands at pelvis or supported blocks; lift chest and lean back only within comfortable range.",
+"Sit tall, soles together and knees supported; hinge forward gently from hips without pressing knees down.",
+"Sit with legs extended, hands beside hips; flex feet gently and lengthen spine.",
+"Sit tall, bend one knee and place foot outside opposite thigh; rotate gently from ribs, keep spine long.",
+"Sit with knees bent, lean back until core engages; lift shins parallel or keep toes down, spine long.",
+"Lie on back, draw knees toward chest and hold behind thighs; relax shoulders and breathe.",
+"Lie on back, knees bent; let knees fall to one side while shoulders remain grounded, switch sides.",
+"Sit beside wall and swing legs up; move hips to comfortable distance and exit slowly.",
+"Lie flat, legs relaxed and arms by sides; release effort and breathe naturally for several minutes.",
+"From tabletop, place forearms down and lift hips; keep neck relaxed and knees bent if needed.",
+"Lie on back, feet grounded and knees bent; lift hips gently and hold, or keep hips down if back feels strained."
+)
+@Composable private fun AsanaLibrary(ink:Color,muted:Color,surface:Color){
+ var q by remember{mutableStateOf("")};var expanded by remember{mutableStateOf("")}
+ val shown=asanaNames.filter{it.contains(q,true)}
+ Column(verticalArrangement=Arrangement.spacedBy(7.dp)){Text("40-POSE ASANA LIBRARY",color=ink,fontWeight=FontWeight.Bold,fontSize=16.sp);OutlinedTextField(value=q,onValueChange={q=it},label={Text("Search poses")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+ shown.forEach{pose->val i=asanaNames.indexOf(pose);Card(Modifier.fillMaxWidth().clickable{expanded=if(expanded==pose)"" else pose},colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(12.dp)){Column(Modifier.padding(11.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text(pose,color=ink,fontWeight=FontWeight.SemiBold,fontSize=13.sp,modifier=Modifier.weight(1f));Icon(if(expanded==pose)Icons.Default.ExpandLess else Icons.Default.ExpandMore,null,tint=muted)};if(expanded==pose){Text("How to practise",color=ink,fontWeight=FontWeight.Bold,fontSize=12.sp);Text(asanaInstructions[i],color=muted,fontSize=12.sp);Text("Breathe normally. Use props or a smaller range, and stop if you feel pain, numbness or dizziness.",color=muted,fontSize=11.sp)}}}}
+ }
+}
 @Composable private fun YouTubeLibrary(ink:Color,muted:Color,surface:Color){val context=LocalContext.current;val vids=listOf("20 Min Yoga Flow • Charlie Follows" to "https://www.youtube.com/watch?v=fxT-5bmzWbk","20 Min Low Impact Cardio • Heather Robertson" to "https://www.youtube.com/watch?v=cA11MYXhBfI","Beginner Bodyweight Workout • Sunny Health" to "https://www.youtube.com/watch?v=WrXeb6EZrK0","10 Min Sun Salutation • Vedam" to "https://www.youtube.com/watch?v=hJolNd62Qhs","Muay Thai 101 • Sean Fagan" to "https://www.youtube.com/watch?v=640rsP_0WgY");Column(verticalArrangement=Arrangement.spacedBy(7.dp)){Text("FREE YOUTUBE VIDEO GUIDES",color=ink,fontWeight=FontWeight.Bold,fontSize=16.sp);Text("All links are free to watch; YouTube may show ads or require sign-in for some features.",color=muted,fontSize=11.sp);vids.forEach{(title,query)->Card(colors=CardDefaults.cardColors(containerColor=surface),shape=RoundedCornerShape(12.dp)){Row(Modifier.fillMaxWidth().clickable{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(if(query.startsWith("https://"))query else "https://www.youtube.com/results?search_query="+Uri.encode(query))))}.padding(11.dp),verticalAlignment=Alignment.CenterVertically){Text("▶",color=Color(0xFFE45C54),fontSize=21.sp);Spacer(Modifier.width(9.dp));Column(Modifier.weight(1f)){Text(title,color=ink,fontWeight=FontWeight.SemiBold,fontSize=13.sp);Text("FREE • YouTube",color=Color(0xFF8BAF52),fontSize=10.sp,fontWeight=FontWeight.Bold)};Icon(Icons.Default.OpenInNew,null,tint=muted)}}}}}
 @Composable private fun PremiumShelf(modifier:Modifier,surface:Color,ink:Color,muted:Color,onClick:()->Unit){Column(modifier.fillMaxWidth().background(Color(0xE9101116),RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).clickable(onClick=onClick).padding(10.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text("🔒 PREMIUM COURSE COLLECTION",color=Color(0xFFE8B75A),fontWeight=FontWeight.Black,fontSize=10.sp,modifier=Modifier.weight(1f));Text("Tap to explore",color=muted,fontSize=10.sp)};Row(horizontalArrangement=Arrangement.spacedBy(7.dp)){listOf("Advanced Yoga • 30 days","Martial Arts Mastery","Strength & Conditioning").forEach{title->Card(Modifier.weight(1f).height(40.dp),colors=CardDefaults.cardColors(containerColor=surface)){Box(Modifier.fillMaxSize().blur(2.dp).padding(4.dp),contentAlignment=Alignment.Center){Text(title,color=ink,fontWeight=FontWeight.Bold,fontSize=9.sp,maxLines=2)}}}}}}
 @Composable private fun PremiumPaywall(ink:Color,muted:Color,surface:Color,back:()->Unit){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp),verticalArrangement=Arrangement.spacedBy(11.dp)){TextButton(onClick=back){Icon(Icons.Default.ArrowBack,null);Text(" Back")};Heading("Premium course vault","Locked advanced programmes",ink,muted);listOf("30-day Asana Mastery","12-week Strength Foundations","Martial Arts Skills Lab","Mobility & Recovery Deep Dive","Nutrition & Meal Planning","Handstand Pathway").forEach{title->Panel(surface){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(title,color=ink,fontWeight=FontWeight.Bold);Text("🔒 Paid course • blurred preview",color=muted,fontSize=11.sp)};Text("PAID",color=Color(0xFFE8B75A),fontWeight=FontWeight.Black,fontSize=11.sp)}}};Text("Locked previews only; no payment is processed.",color=muted,fontSize=11.sp)}}
