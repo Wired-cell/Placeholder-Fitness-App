@@ -82,6 +82,42 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  Meal("Dal & vegetable roti","Obesity class I • portion aware",460,22,61,13,"Masoor dal 1 cup, 2 small whole-wheat rotis, vegetables, salad","Cook dal with tomato and spices. Serve with rotis and salad.",setOf("Gluten")),
  Meal("Egg bhurji & roti","Obesity class II • protein rich",410,26,38,15,"2 eggs, onion, tomato, spinach, 1 small roti","Scramble eggs with vegetables. Serve with roti and cucumber.",setOf("Eggs","Gluten")),
  Meal("Lentil & sweet potato","All body types • plant based",475,19,76,11,"Lentils 1 cup, sweet potato 150g, spinach, tahini 1 tsp","Roast sweet potato. Add warm lentils and spinach; finish with tahini.",setOf("Sesame")))
+
+ val expandedFoods=foods+listOf(
+ Meal("Masala egg oats","Protein breakfast",390,24,42,13,"Rolled oats, 2 eggs, onion, tomato, turmeric","Cook oats with water and spices. Scramble eggs with vegetables and fold through.",setOf("Eggs")),
+ Meal("Ragi dosa with sambar","South Indian",420,14,68,10,"Ragi flour, urad batter, sambar","Cook dosas on a hot pan and serve with vegetable sambar.",setOf("Legumes")),
+ Meal("Idli and vegetable sambar","Balanced breakfast",360,13,66,5,"3 idlis, sambar, coconut chutney","Steam idlis and serve with hot vegetable sambar.",setOf("Coconut")),
+ Meal("Poha with peas","Quick breakfast",340,9,58,9,"Flattened rice, peas, peanuts, onion, lemon","Rinse poha, sauté aromatics and peas, fold in poha and finish with lemon.",setOf("Peanuts")),
+ Meal("Besan chilla","Vegetarian protein",310,17,38,9,"Besan, onion, tomato, spinach, curd","Whisk besan with water and vegetables. Cook savoury pancakes.",setOf("Legumes","Dairy")),
+ Meal("Sprouted moong chaat","Fresh snack",230,14,35,4,"Moong sprouts, tomato, cucumber, lemon","Steam sprouts lightly if preferred; toss with vegetables, lemon and spices.",setOf("Legumes")),
+ Meal("Rajma brown rice bowl","Plant protein",510,20,82,10,"Rajma, brown rice, tomato, onion, salad","Simmer rajma in tomato masala and serve with brown rice and salad.",setOf("Legumes")),
+ Meal("Palak tofu","Plant based",390,24,32,18,"Tofu, spinach, tomato, garlic, millet roti","Blend cooked spinach, simmer with garlic and tomato, then add tofu.",setOf("Soy")),
+ Meal("Chana masala","Chickpea curry",460,19,72,11,"Chickpeas, tomato, onion, spices, roti","Simmer chickpeas in onion-tomato masala until thick. Serve with roti.",setOf("Legumes","Gluten")),
+ Meal("Vegetable dalia","One-pot meal",370,13,66,7,"Broken wheat, carrots, beans, peas, cumin","Sauté vegetables and dalia, add water and pressure-cook until soft.",setOf("Gluten")),
+ Meal("Lemon rice with peanuts","Quick lunch",430,10,68,13,"Rice, peanuts, curry leaves, lemon, turmeric","Temper mustard, curry leaves and peanuts; toss with rice and lemon.",setOf("Peanuts")),
+ Meal("Curd rice with pomegranate","Cooling meal",380,12,62,9,"Rice, plain curd, pomegranate, curry leaves","Fold curd into cooled rice and top with pomegranate.",setOf("Dairy")),
+ Meal("Grilled chicken millet bowl","High protein",520,39,55,15,"Chicken breast, millet, vegetables, yoghurt marinade","Grill marinated chicken thoroughly and serve with millet and vegetables.",setOf("Dairy")),
+ Meal("Fish curry with rice","Protein rich",490,32,61,12,"Fish, tomato, tamarind, spices, rice","Simmer fish gently in tomato-tamarind curry until cooked through.",setOf("Fish")),
+ Meal("Paneer bhurji wrap","Portable lunch",480,25,49,19,"Paneer, whole-wheat wrap, capsicum, onion, tomato","Scramble paneer with vegetables and spices; roll into a warm wrap.",setOf("Dairy","Gluten")),
+ Meal("Sweet potato chaat","Pre-workout snack",260,5,52,5,"Sweet potato, lemon, cumin, coriander, yoghurt","Steam or roast sweet potato, cube and toss with spices and lemon.",setOf("Dairy")),
+ Meal("Banana lassi","Quick energy",250,9,42,6,"Banana, plain yoghurt, water, cardamom","Blend all ingredients until smooth; serve chilled.",setOf("Dairy")),
+ Meal("Apple cinnamon yoghurt","Simple snack",190,10,29,4,"Apple, plain yoghurt, cinnamon, pumpkin seeds","Dice apple and serve over yoghurt with cinnamon and seeds.",setOf("Dairy","Seeds")),
+ Meal("Roasted makhana","Crunchy snack",170,5,22,7,"Makhana, ghee, turmeric, pepper","Dry-roast makhana, add ghee and spices, toss until crisp.",setOf("Dairy")),
+ Meal("Hummus vegetable sticks","Fibre snack",220,8,25,10,"Chickpeas, tahini, lemon, carrot and cucumber","Blend chickpeas with tahini and lemon. Serve with vegetable sticks.",setOf("Sesame","Legumes")),
+ Meal("Overnight chia oats","Make ahead",410,15,54,16,"Oats, chia, milk, berries, nuts","Combine oats, chia and milk; chill overnight and top with fruit.",setOf("Dairy","Tree nuts")),
+ Meal("Berry peanut smoothie","Recovery snack",330,14,43,12,"Berries, milk, peanut butter, oats","Blend until smooth. Adjust thickness with water or milk.",setOf("Peanuts","Dairy")),
+ Meal("Vegetable upma","Warm breakfast",350,10,56,10,"Semolina, mixed vegetables, mustard, curry leaves","Toast semolina. Temper spices and vegetables, add water and stir.",setOf("Gluten")),
+ Meal("Tofu scramble toast","Plant breakfast",360,22,38,13,"Tofu, wholegrain toast, spinach, turmeric","Crumble tofu and sauté with spinach and spices. Serve on toast.",setOf("Soy","Gluten")),
+ Meal("Oats khichdi","Light meal",340,14,55,8,"Rolled oats, moong dal, carrots, peas, cumin","Cook dal and vegetables, add oats and simmer until creamy.",setOf("Legumes")),
+ Meal("Stuffed vegetable paratha","Filling breakfast",430,12,62,14,"Whole-wheat dough, carrot, cauliflower, curd","Fill dough with spiced vegetables, roll and cook on a hot pan.",setOf("Gluten","Dairy")),
+ Meal("Black bean corn salad","Fresh plant meal",390,17,61,9,"Black beans, corn, tomato, capsicum, lime","Rinse beans and toss with corn, vegetables and lime dressing.",setOf("Legumes")),
+ Meal("Pumpkin lentil soup","Comforting dinner",320,17,48,7,"Pumpkin, red lentils, ginger, stock, pepper","Simmer pumpkin and lentils until tender; blend partly or fully.",setOf("Legumes")),
+ Meal("Vegetable pulao with raita","Balanced meal",470,13,75,12,"Basmati rice, mixed vegetables, spices, curd","Cook rice with vegetables and whole spices; serve with raita.",setOf("Dairy")),
+ Meal("Grilled corn paneer salad","Protein salad",400,23,38,18,"Paneer, corn, lettuce, tomato, lime","Grill paneer and corn, then toss with salad vegetables and lime.",setOf("Dairy")),
+ Meal("Methi dal with roti","Everyday dinner",440,19,65,11,"Toor dal, fenugreek leaves, whole-wheat roti","Cook dal and methi with spices. Serve with a warm roti.",setOf("Legumes","Gluten")),
+ Meal("Coconut vegetable stew","Gentle dinner",390,8,43,22,"Mixed vegetables, light coconut milk, curry leaves","Simmer vegetables in coconut milk with ginger and curry leaves.",setOf("Coconut"))
+ )
+
  val products=listOf(Triple("Resistance band set","₹399",699),Triple("Yoga mat • 6 mm","₹699",1199),Triple("Doorway pull-up bar","₹1,299",1899),Triple("Skipping rope","₹249",499),Triple("Adjustable dumbbells","₹2,499",3499),Triple("Foam roller","₹599",999))
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=lime,background=bg,surface=surface,onBackground=ink,onSurface=ink) else lightColorScheme(primary=Color(0xFF426B18),background=bg,surface=surface,onBackground=ink,onSurface=ink)) {
  Scaffold(containerColor=bg,topBar={ TopAppBar(title={Text(if(settings) "Settings" else if(selectedLesson!=null) selectedLesson!!.name else "MOMENTUM",fontWeight=FontWeight.Black,letterSpacing=1.2.sp)},actions={IconButton(onClick={settings=!settings}){Icon(if(settings) Icons.Default.Close else Icons.Default.Settings,"Settings")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=bg,titleContentColor=ink,actionIconContentColor=ink)) },
@@ -94,7 +130,7 @@ private data class Meal(val name:String,val tag:String,val kcal:Int,val protein:
  else -> when(tab) {
  Tab.Home -> HomeScreen(ink,muted,surface,lime,unlocked,{tab=it})
  Tab.Train -> TrainingScreen(lessons,ink,muted,surface,lime,{l->selectedLesson=l})
- Tab.Food -> FoodScreen(foods,allergies,{allergies=it},ink,muted,surface)
+ Tab.Food -> FoodScreen(expandedFoods,allergies,{allergies=it},ink,muted,surface)
  Tab.Track -> Tracker(water,{water=(water+1).coerceAtMost(20)},{water=(water-1).coerceAtLeast(0)},mealCount,{mealCount++},ink,muted,surface)
  Tab.Shop -> Shop(products,cart,{cart=if(it in cart)cart-it else cart+it},ink,muted,surface,{gatewayItems=cart.mapNotNull{n->products.find{p->p.first==n}?.let{it.first to it.third}};gateway=true})
  Tab.Connect -> Community(randomPosts,likes,{i->likes=if(i in likes)likes-i else likes+i},ink,muted,surface)
